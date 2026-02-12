@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OAuthClientController;
+use App\Http\Controllers\DashboardImageController;
 
 /*
 |--------------------------------------------------------------------------
@@ -30,3 +31,7 @@ Route::get('/oauth/callback', [OAuthClientController::class, 'handleProviderCall
 Route::middleware('auth')->get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
+
+// Proxy endpoint for dashboard image generation
+Route::middleware('auth')->post('/dashboard/image', [DashboardImageController::class, 'generate'])
+    ->name('api.image.generate');
