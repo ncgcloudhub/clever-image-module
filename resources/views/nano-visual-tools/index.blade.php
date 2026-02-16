@@ -25,6 +25,34 @@
     .list-view .tool-card .tool-content {
         flex: 1;
     }
+    .tool-thumbnail {
+        position: relative;
+        width: 100%;
+        padding-bottom: 60%;
+        background: linear-gradient(135deg, rgba(19, 164, 236, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    .tool-thumbnail img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .tool-thumbnail .icon-placeholder {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    .list-view .tool-thumbnail {
+        width: 120px;
+        padding-bottom: 80px;
+        margin-bottom: 0;
+    }
     .modal-overlay {
         position: fixed;
         inset: 0;
@@ -261,25 +289,36 @@
 
         container.innerHTML = `
             <div class="${gridClass} ${viewClass}">
-                ${tools.map(tool => `
-                    <div class="tool-card glass p-6 rounded-2xl border border-white/5 hover:border-primary/30 cursor-pointer transition-all" onclick="selectTool(${tool.id})">
-                        <div class="tool-icon mb-4">
-                            <div class="size-12 rounded-xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-2xl text-primary">auto_awesome</span>
+                ${tools.map(tool => {
+                    const thumbnailHtml = tool.preview_image
+                        ? `<img src="${escapeHtml(tool.preview_image)}"
+                               alt="${escapeHtml(tool.name)}"
+                               loading="lazy"
+                               onerror="this.style.display='none'; this.parentElement.innerHTML = '<div class=\\'icon-placeholder\\'><div class=\\'size-16 rounded-xl bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center\\'><span class=\\'material-symbols-outlined text-4xl text-primary\\'>auto_awesome</span></div></div>';">`
+                        : `<div class="icon-placeholder">
+                            <div class="size-16 rounded-xl bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-4xl text-primary">auto_awesome</span>
+                            </div>
+                           </div>`;
+
+                    return `
+                        <div class="tool-card glass p-6 rounded-2xl border border-white/5 hover:border-primary/30 cursor-pointer transition-all" onclick="selectTool(${tool.id})">
+                            <div class="tool-thumbnail">
+                                ${thumbnailHtml}
+                            </div>
+                            <div class="tool-content">
+                                <h3 class="text-lg font-bold text-white mb-2">${escapeHtml(tool.name)}</h3>
+                                <p class="text-sm text-slate-400 mb-4 line-clamp-2">${escapeHtml(tool.description || 'No description available')}</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-medium text-primary">${tool.credits_per_generation || 2} credits</span>
+                                    <button class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-xs font-bold transition-all">
+                                        Use Tool
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div class="tool-content">
-                            <h3 class="text-lg font-bold text-white mb-2">${escapeHtml(tool.name)}</h3>
-                            <p class="text-sm text-slate-400 mb-4">${escapeHtml(tool.description || 'No description available')}</p>
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs font-medium text-primary">${tool.credits_per_generation || 2} credits</span>
-                                <button class="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg text-xs font-bold transition-all">
-                                    Use Tool
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         `;
     }
