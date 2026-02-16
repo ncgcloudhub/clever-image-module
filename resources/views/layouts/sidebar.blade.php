@@ -12,11 +12,15 @@
 </div>
 </div>
 <nav class="flex-1 px-4 space-y-1">
-<div class="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg text-primary">
+<a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('dashboard') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a href="{{ route('nano.visual.tools') }}" class="{{ request()->routeIs('nano.visual.tools') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('nano.visual.tools') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
 <span class="material-symbols-outlined">auto_awesome</span>
-<span class="text-sm font-medium">Image Generator</span>
+<span class="text-sm font-medium">Image Tools</span>
 <span class="ml-auto px-2 py-0.5 text-[10px] font-bold bg-primary text-white rounded-full uppercase">New</span>
-</div>
+</a>
 <div class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
 <span class="material-symbols-outlined">photo_library</span>
 <span class="text-sm font-medium">My Gallery</span>
