@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan tinker:*)",
+      "Bash(php artisan db:seed:*)",
+      "Bash(php artisan config:clear:*)",
+      "Bash(php artisan:*)"
+    ]
+  }
+}
