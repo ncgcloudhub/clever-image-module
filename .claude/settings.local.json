@@ -4,7 +4,8 @@
       "Bash(php artisan tinker:*)",
       "Bash(php artisan db:seed:*)",
       "Bash(php artisan config:clear:*)",
-      "Bash(php artisan:*)"
+      "Bash(php artisan:*)",
+      "Read(//c/AISITENEW/**)"
     ]
   }
 }

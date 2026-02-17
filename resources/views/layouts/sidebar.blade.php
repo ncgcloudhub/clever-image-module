@@ -25,7 +25,13 @@
        class="{{ request()->routeIs('nano.visual.tools') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('nano.visual.tools') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
         <span class="material-symbols-outlined flex-shrink-0">auto_awesome</span>
         <span class="sidebar-label text-sm font-medium whitespace-nowrap">Image Tools</span>
-        <span class="sidebar-label ml-auto px-2 py-0.5 text-[10px] font-bold bg-primary text-white rounded-full uppercase">New</span>
+    </a>
+    <a href="{{ route('playground') }}"
+       title="AI Playground"
+       class="{{ request()->routeIs('playground') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('playground') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
+        <span class="material-symbols-outlined flex-shrink-0">smart_toy</span>
+        <span class="sidebar-label text-sm font-medium whitespace-nowrap">AI Playground</span>
+        <span class="sidebar-label ml-auto px-2 py-0.5 text-[10px] font-bold bg-gradient-to-r from-primary to-secondary text-white rounded-full uppercase">New</span>
     </a>
     <a href="{{ route('gallery') }}"
        title="My Gallery"
