@@ -62,6 +62,7 @@
 </div>
 </main>
 </div>
+@stack('modals')
 @stack('scripts')
 <script>
     // User dropdown toggle

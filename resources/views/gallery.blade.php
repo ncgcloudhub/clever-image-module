@@ -8,9 +8,9 @@
     .image-modal {
         display: none;
         position: fixed;
-        inset: 0;
-        z-index: 100;
-        background: rgba(0, 0, 0, 0.85);
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 9999;
+        background: rgba(0, 0, 0, 0.92);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
         opacity: 0;
@@ -22,13 +22,11 @@
     }
     .image-modal-content {
         position: relative;
-        max-width: 90vw;
-        max-height: 90vh;
         width: 100%;
-        margin: auto;
+        height: 100%;
         display: flex;
         gap: 2rem;
-        padding: 2rem;
+        padding: 5rem 2rem 2rem 2rem;
         overflow: hidden;
     }
     .modal-image-container {
@@ -59,7 +57,7 @@
     .fullscreen-viewer {
         position: fixed;
         inset: 0;
-        z-index: 110;
+        z-index: 10000;
         background: rgba(0,0,0,0.96);
         display: none;
         align-items: center;
@@ -246,6 +244,9 @@
     </div>
 </section>
 
+@endsection
+
+@push('modals')
 <!-- ============================================================ -->
 <!--  IMAGE DETAIL MODAL                                          -->
 <!-- ============================================================ -->
@@ -326,7 +327,9 @@
     </button>
     <img id="fullscreenImage" src="" alt="Fullscreen image" class="fullscreen-image">
 </div>
+@endpush
 
+@push('scripts')
 <script>
 // ============================================================
 //  GALLERY DATA & STATE
@@ -650,4 +653,4 @@ modalUseInGeneratorBtn.addEventListener('click', function() {
 // ============================================================
 loadGallery(1);
 </script>
-@endsection
+@endpush
