@@ -128,11 +128,94 @@
         height: 100%;
         object-fit: cover;
     }
+    .regen-count-btn.active-count {
+        background: rgba(19, 164, 236, 0.15);
+        border-color: rgba(19, 164, 236, 0.5);
+        color: #13a4ec;
+    }
+    #regenOffcanvas.open {
+        transform: translateX(0);
+    }
+    .regen-checkbox:checked + div span.material-symbols-outlined {
+        color: #13a4ec;
+    }
+    .regen-card {
+        position: relative;
+        border-radius: 0.75rem;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.03);
+        transition: all 0.3s ease;
+    }
+    .regen-card:hover {
+        border-color: rgba(19,164,236,0.3);
+        box-shadow: 0 4px 20px rgba(19,164,236,0.1);
+    }
+    @keyframes shimmer {
+        0%   { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    .shimmer-sweep::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+        animation: shimmer 1.6s infinite;
+    }
+    @keyframes regen-pulse-border {
+        0%, 100% { border-color: rgba(19,164,236,0.2); box-shadow: 0 0 0 0 rgba(19,164,236,0); }
+        50%       { border-color: rgba(19,164,236,0.6); box-shadow: 0 0 12px 2px rgba(19,164,236,0.15); }
+    }
+    .regen-skeleton {
+        border-radius: 0.75rem;
+        overflow: hidden;
+        position: relative;
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(19,164,236,0.2);
+        animation: regen-pulse-border 2s ease-in-out infinite;
+    }
+    #regenGenerateBtn:disabled {
+        opacity: 1;
+        cursor: not-allowed;
+        background: rgba(19,164,236,0.5);
+    }
+    @keyframes offcanvas-glow {
+        0%, 100% { box-shadow: inset 0 0 0 1px rgba(19,164,236,0.25), 0 0 0 0 rgba(19,164,236,0); }
+        50%       { box-shadow: inset 0 0 0 1px rgba(19,164,236,0.7), 0 0 24px 4px rgba(19,164,236,0.12); }
+    }
+    .offcanvas-generating {
+        animation: offcanvas-glow 1.8s ease-in-out infinite;
+        border-left-color: rgba(19,164,236,0.5) !important;
+    }
+    .offcanvas-generating .offcanvas-form-overlay {
+        display: flex;
+    }
+    .offcanvas-form-overlay {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: rgba(10,10,14,0.45);
+        backdrop-filter: blur(2px);
+        z-index: 10;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="h-full">
+
+<!-- Floating Test Button (dev only) -->
+<button onclick="testRegenerateUI()" id="floatingTestBtn"
+    class="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700/90 border border-white/10 hover:border-primary/40 rounded-full shadow-xl backdrop-blur-sm text-xs text-slate-300 hover:text-primary transition-all group">
+    <span class="material-symbols-outlined text-sm group-hover:animate-spin" style="animation-duration:2s">science</span>
+    Test Regenerate UI
+</button>
+
 <!-- Directory/Grid View -->
 <div id="directoryView">
 <!-- Search and Filter Bar -->
@@ -222,7 +305,7 @@
         </section>
 
         <!-- Right Preview Area -->
-        <section class="flex-1 bg-black/40 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        <section class="flex-1 bg-black/40 flex flex-col items-center p-6 relative overflow-y-auto custom-scrollbar">
             <!-- Preview Controls -->
             <div id="previewControls" class="absolute top-4 right-4 flex items-center gap-2 z-20 hidden">
                 <div class="bg-background-dark/90 backdrop-blur-md border border-white/10 rounded-lg flex p-1 shadow-xl">
@@ -232,20 +315,202 @@
                     <button class="p-2 hover:bg-white/5 rounded-md text-slate-400 hover:text-white transition-colors" onclick="shareCurrentImage()" title="Share">
                         <span class="material-symbols-outlined text-xl">share</span>
                     </button>
+                    <div class="w-px h-5 bg-white/10 mx-1 self-center"></div>
+                    <button class="p-2 hover:bg-primary/10 rounded-md text-slate-400 hover:text-primary transition-colors flex items-center gap-1.5 pr-3" onclick="openRegenerateCanvas()" title="Regenerate Variations" id="regenerateBtn">
+                        <span class="material-symbols-outlined text-xl">auto_fix_high</span>
+                        <span class="text-xs font-semibold">Regenerate</span>
+                    </button>
                 </div>
             </div>
 
             <!-- Preview Content -->
-            <div id="previewContent" class="w-full h-full flex items-center justify-center">
+            <div id="previewContent" class="w-full flex items-center justify-center min-h-[60%]">
                 <div class="text-center">
                     <div class="inline-block p-5 bg-primary/10 rounded-xl mb-3">
                         <span class="material-symbols-outlined text-5xl text-primary">image</span>
                     </div>
                     <h3 class="text-lg font-bold text-white mb-1">Preview Area</h3>
                     <p class="text-sm text-slate-400">Your generated image will appear here</p>
+                    <button onclick="testRegenerateUI()" class="mt-4 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-primary/30 rounded-lg text-xs text-slate-400 hover:text-primary transition-all flex items-center gap-2 mx-auto">
+                        <span class="material-symbols-outlined text-sm">science</span>
+                        Preview Regenerate UI
+                    </button>
+                </div>
+            </div>
+
+            <!-- Regenerated Variations Section -->
+            <div id="regeneratedSection" class="hidden w-full px-6 pb-6">
+                <div class="border-t border-white/10 pt-5">
+                    <!-- Section Label -->
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-3 py-1">
+                            <span class="material-symbols-outlined text-primary text-sm">auto_fix_high</span>
+                            <span class="text-xs font-bold text-primary tracking-wide">REGENERATED VARIATIONS</span>
+                        </div>
+                        <div class="flex-1 h-px bg-white/5"></div>
+                        <span class="text-[10px] text-slate-500" id="regenTimestamp"></span>
+                    </div>
+                    <!-- Regenerated Images Grid -->
+                    <div id="regeneratedGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
                 </div>
             </div>
         </section>
+    </div>
+</div>
+
+<!-- Regenerate Offcanvas -->
+<div id="regenOffcanvas" class="fixed inset-y-0 right-0 z-50 w-full sm:w-96 flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out overflow-hidden">
+    <!-- Backdrop (click-outside close) -->
+    <div id="regenBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm -z-10 hidden" onclick="closeRegenerateCanvas()"></div>
+    <div class="flex-1 flex flex-col bg-[#0f1117] border-l border-white/10 shadow-2xl overflow-hidden" id="regenOffcanvasPanel">
+        <!-- Header -->
+        <div class="p-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
+            <div class="flex items-center gap-2">
+                <div class="p-1.5 bg-primary/10 rounded-lg">
+                    <span class="material-symbols-outlined text-primary text-lg">auto_fix_high</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white text-sm">Regenerate Image</h3>
+                    <p class="text-[10px] text-slate-500">Create variations of your result</p>
+                </div>
+            </div>
+            <button onclick="closeRegenerateCanvas()" class="p-2 hover:bg-white/5 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-slate-400 text-lg">close</span>
+            </button>
+        </div>
+
+        <!-- Scrollable Body -->
+        <div class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5 relative" id="regenFormBody">
+            <!-- Generating overlay (shown via .offcanvas-generating) -->
+            <div class="offcanvas-form-overlay" id="regenFormOverlay">
+                <svg class="animate-spin h-8 w-8 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                <p class="text-xs text-primary/80 font-medium animate-pulse" id="regenFormOverlayText">Generating…</p>
+            </div>
+
+            <!-- Source Image Preview -->
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Source Image</p>
+                <div class="rounded-xl overflow-hidden border border-white/10 bg-white/5 aspect-square w-full max-w-[120px] mx-auto relative">
+                    <img id="regenSourceImage" src="" alt="Source" class="w-full h-full object-contain">
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent py-1.5 px-2">
+                        <p class="text-[9px] text-white/70 text-center font-medium">Original</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modification Prompt -->
+            <div>
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Modification Prompt</label>
+                <textarea
+                    id="regenPrompt"
+                    rows="3"
+                    class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-none"
+                    placeholder="Describe how you want to modify the image..."
+                ></textarea>
+            </div>
+
+            <!-- Number of Variations -->
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Number of Variations</p>
+                <div class="flex gap-2">
+                    <button type="button" onclick="selectRegenCount(1)" id="regenCount1"
+                        class="regen-count-btn flex-1 py-2 rounded-lg border border-white/10 text-sm font-bold transition-all hover:border-primary/50 bg-white/5 text-slate-300 active-count">
+                        1
+                    </button>
+                    <button type="button" onclick="selectRegenCount(2)" id="regenCount2"
+                        class="regen-count-btn flex-1 py-2 rounded-lg border border-white/10 text-sm font-bold transition-all hover:border-primary/50 bg-white/5 text-slate-300">
+                        2
+                    </button>
+                    <button type="button" onclick="selectRegenCount(3)" id="regenCount3"
+                        class="regen-count-btn flex-1 py-2 rounded-lg border border-white/10 text-sm font-bold transition-all hover:border-primary/50 bg-white/5 text-slate-300">
+                        3
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modification Options -->
+            <div>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Modification Options</p>
+                <div class="space-y-2">
+                    <label class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer group transition-all">
+                        <input type="checkbox" id="regenLayoutChange" class="regen-checkbox w-4 h-4 rounded border-white/20 bg-white/5 accent-primary cursor-pointer">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-base">dashboard_customize</span>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-200">Layout Change</p>
+                                <p class="text-[9px] text-slate-500">Alter composition & arrangement</p>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer group transition-all">
+                        <input type="checkbox" id="regenStyleChange" class="regen-checkbox w-4 h-4 rounded border-white/20 bg-white/5 accent-primary cursor-pointer">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-base">style</span>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-200">Style Change</p>
+                                <p class="text-[9px] text-slate-500">Modify artistic style & aesthetics</p>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer group transition-all">
+                        <input type="checkbox" id="regenColorChange" class="regen-checkbox w-4 h-4 rounded border-white/20 bg-white/5 accent-primary cursor-pointer">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-base">palette</span>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-200">Color Adjustment</p>
+                                <p class="text-[9px] text-slate-500">Change color tones & palette</p>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer group transition-all">
+                        <input type="checkbox" id="regenLightingChange" class="regen-checkbox w-4 h-4 rounded border-white/20 bg-white/5 accent-primary cursor-pointer">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-base">light_mode</span>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-200">Lighting Change</p>
+                                <p class="text-[9px] text-slate-500">Adjust lighting & shadows</p>
+                            </div>
+                        </div>
+                    </label>
+                    <label class="flex items-center gap-3 p-3 rounded-lg bg-white/5 border border-white/5 hover:border-white/10 cursor-pointer group transition-all">
+                        <input type="checkbox" id="regenDetailEnhance" class="regen-checkbox w-4 h-4 rounded border-white/20 bg-white/5 accent-primary cursor-pointer">
+                        <div class="flex items-center gap-2 flex-1">
+                            <span class="material-symbols-outlined text-slate-400 group-hover:text-primary transition-colors text-base">lens_blur</span>
+                            <div>
+                                <p class="text-xs font-semibold text-slate-200">Detail Enhancement</p>
+                                <p class="text-[9px] text-slate-500">Sharpen details & textures</p>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Regen Status -->
+            <div id="regenStatus" class="hidden p-3 rounded-lg text-xs"></div>
+        </div>
+
+        <!-- Footer / Generate Button -->
+        <div class="p-4 border-t border-white/10 flex-shrink-0 space-y-2">
+            <button
+                id="regenGenerateBtn"
+                onclick="submitRegenerate()"
+                class="w-full py-3 bg-primary hover:bg-primary/90 rounded-xl font-bold text-sm text-white shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 group"
+            >
+                <span class="material-symbols-outlined text-lg group-hover:animate-pulse">auto_fix_high</span>
+                GENERATE VARIATIONS
+            </button>
+            <button
+                type="button"
+                onclick="testRegeneratedResults(); setTimeout(closeRegenerateCanvas, 800);"
+                class="w-full py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs text-slate-400 hover:text-white transition-all flex items-center justify-center gap-2"
+            >
+                <span class="material-symbols-outlined text-sm">science</span>
+                Preview Results (Test Only)
+            </button>
+        </div>
     </div>
 </div>
 
@@ -460,6 +725,10 @@
             </div>
         `;
         document.getElementById('previewControls').classList.add('hidden');
+        document.getElementById('regeneratedSection').classList.add('hidden');
+        document.getElementById('regeneratedGrid').innerHTML = '';
+        window.currentImageUrl = null;
+        window.currentImageData = null;
     }
 
     function setupInterfaceForm(tool) {
@@ -822,7 +1091,7 @@
         const previewControls = document.getElementById('previewControls');
 
         previewContent.innerHTML = `
-            <div class="relative w-full max-w-2xl px-4">
+            <div class="relative w-full max-w-2xl px-4 pt-4">
                 <div class="relative w-full aspect-square rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.4)] ring-1 ring-white/10">
                     <img src="${escapeHtml(data.image_url)}" alt="Generated image" class="w-full h-full object-contain bg-black/20" id="currentPreviewImage">
                 </div>
@@ -831,7 +1100,11 @@
 
         previewControls.classList.remove('hidden');
 
-        // Store current image URL for download/share
+        // Reset regenerated section for new generation
+        document.getElementById('regeneratedSection').classList.add('hidden');
+        document.getElementById('regeneratedGrid').innerHTML = '';
+
+        // Store current image URL and data for download/share/regenerate
         window.currentImageUrl = data.image_url;
         window.currentImageData = data;
     }
@@ -1006,5 +1279,311 @@
 
     // Initialize
     loadTools();
+
+    // ─── Dev / Test Helper ───────────────────────────────────────────────────
+    function testRegenerateUI() {
+        // Ensure we're in the interface view
+        document.getElementById('directoryView').classList.add('hidden');
+        const interfaceView = document.getElementById('toolInterfaceView');
+        interfaceView.classList.remove('hidden');
+
+        // Set a mock tool title if none is set
+        const titleEl = document.getElementById('toolInterfaceTitle');
+        if (!titleEl.textContent.trim()) {
+            titleEl.textContent = 'Test Tool';
+        }
+
+        // Mock a successful generation response with a real placeholder image
+        const mockData = {
+            success: true,
+            image_url: 'https://picsum.photos/seed/regen1/800/800',
+            credits_used: 2,
+            image_data: { id: 9999, prompt: 'Test prompt for UI preview' },
+        };
+
+        // Show the image in preview (also resets regen section + shows controls bar)
+        displayInPreview(mockData);
+
+        // Open the offcanvas after the image renders
+        setTimeout(() => openRegenerateCanvas(), 250);
+    }
+
+    function testRegeneratedResults() {
+        // Simulate what the API returns with 3 variations
+        displayRegeneratedImages({
+            success: true,
+            images: [
+                { url: 'https://picsum.photos/seed/var1/800/800' },
+                { url: 'https://picsum.photos/seed/var2/800/800' },
+                { url: 'https://picsum.photos/seed/var3/800/800' },
+            ],
+        });
+    }
+
+    // ─── Regenerate Offcanvas ────────────────────────────────────────────────
+    let selectedRegenCount = 1;
+
+    function openRegenerateCanvas() {
+        if (!window.currentImageUrl) return;
+
+        // Populate source image
+        document.getElementById('regenSourceImage').src = window.currentImageUrl;
+
+        // Reset form
+        document.getElementById('regenPrompt').value = '';
+        document.querySelectorAll('.regen-checkbox').forEach(cb => cb.checked = false);
+        selectRegenCount(1);
+
+        const statusEl = document.getElementById('regenStatus');
+        statusEl.classList.add('hidden');
+
+        // Open offcanvas
+        const offcanvas = document.getElementById('regenOffcanvas');
+        const backdrop = document.getElementById('regenBackdrop');
+        offcanvas.classList.add('open');
+        backdrop.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+
+        // Focus the prompt textarea after the slide-in transition finishes
+        setTimeout(() => document.getElementById('regenPrompt').focus(), 320);
+    }
+
+    function closeRegenerateCanvas() {
+        const offcanvas = document.getElementById('regenOffcanvas');
+        const backdrop = document.getElementById('regenBackdrop');
+        offcanvas.classList.remove('open');
+        backdrop.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    function selectRegenCount(n) {
+        selectedRegenCount = n;
+        document.querySelectorAll('.regen-count-btn').forEach(btn => btn.classList.remove('active-count'));
+        document.getElementById('regenCount' + n).classList.add('active-count');
+    }
+
+    const REGEN_BTN_DEFAULT_HTML = `<span class="material-symbols-outlined text-lg group-hover:animate-pulse">auto_fix_high</span> GENERATE VARIATIONS`;
+
+    async function submitRegenerate() {
+        const imageData = window.currentImageData;
+        const imageId = imageData?.image_data?.id;
+        const statusEl = document.getElementById('regenStatus');
+
+        if (!imageId) {
+            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
+            statusEl.classList.remove('hidden');
+            statusEl.innerHTML = '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">error</span><span>Image ID not available. Try regenerating after a fresh generation.</span></div>';
+            return;
+        }
+
+        const btn = document.getElementById('regenGenerateBtn');
+        const n = selectedRegenCount;
+
+        // ── Loading state ────────────────────────────────────────────────────
+        document.getElementById('regenOffcanvasPanel').classList.add('offcanvas-generating');
+        document.getElementById('regenFormOverlayText').textContent = `Generating ${n} variation${n > 1 ? 's' : ''}…`;
+
+        btn.disabled = true;
+        btn.innerHTML = `
+            <span class="flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                Generating ${n} Variation${n > 1 ? 's' : ''}…
+            </span>
+        `;
+
+        // Skeleton shimmer cards in status area
+        const cols = n === 1 ? 'grid-cols-1' : 'grid-cols-2';
+        statusEl.className = 'rounded-lg text-xs';
+        statusEl.classList.remove('hidden');
+        statusEl.innerHTML = `
+            <div class="grid ${cols} gap-2 mb-3">
+                ${Array.from({length: n}).map((_, i) => `
+                    <div class="regen-skeleton shimmer-sweep aspect-square flex flex-col items-center justify-center gap-1.5">
+                        <span class="material-symbols-outlined text-primary/40 text-2xl animate-pulse">auto_fix_high</span>
+                        <span class="text-[9px] text-slate-600">Variation ${i + 1}</span>
+                    </div>
+                `).join('')}
+            </div>
+            <p class="text-center text-[10px] text-slate-500 animate-pulse">AI is crafting your variations…</p>
+        `;
+
+        // Scroll offcanvas body so the skeleton cards are immediately visible
+        const formBody = document.getElementById('regenFormBody');
+        requestAnimationFrame(() => {
+            document.getElementById('regenStatus').scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+        });
+
+        // Also show skeleton in the main preview results area immediately
+        showRegenSkeletons(n);
+
+        const payload = {
+            image_id: imageId,
+            count: n,
+            modification_prompt: document.getElementById('regenPrompt').value || null,
+            layout_change: document.getElementById('regenLayoutChange').checked,
+            style_change: document.getElementById('regenStyleChange').checked,
+            color_change: document.getElementById('regenColorChange').checked,
+            lighting_change: document.getElementById('regenLightingChange').checked,
+            detail_enhance: document.getElementById('regenDetailEnhance').checked,
+        };
+
+        try {
+            const response = await fetch('{{ route("api.nano.visual.tools.regenerate") }}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(payload),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                throw new Error(data.error || 'Regeneration failed');
+            }
+
+            // Success state
+            statusEl.className = 'p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs';
+            statusEl.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">check_circle</span>
+                    <span>Done! ${n} variation${n > 1 ? 's' : ''} ready below.</span>
+                </div>
+            `;
+
+            // Replace skeletons with real images, then close
+            displayRegeneratedImages(data);
+            setTimeout(() => closeRegenerateCanvas(), 1000);
+
+        } catch (error) {
+            clearRegenSkeletons();
+            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
+            statusEl.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">error</span>
+                    <span>Error: ${escapeHtml(error.message)}</span>
+                </div>
+            `;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = REGEN_BTN_DEFAULT_HTML;
+            document.getElementById('regenOffcanvasPanel').classList.remove('offcanvas-generating');
+        }
+    }
+
+    function showRegenSkeletons(n) {
+        const section = document.getElementById('regeneratedSection');
+        const grid = document.getElementById('regeneratedGrid');
+        const timestamp = document.getElementById('regenTimestamp');
+
+        // Clear old skeletons/results and mark with a temp id
+        grid.innerHTML = '';
+        timestamp.textContent = 'Generating…';
+
+        for (let i = 0; i < n; i++) {
+            const el = document.createElement('div');
+            el.className = 'regen-skeleton shimmer-sweep regen-skeleton-placeholder';
+            el.style.aspectRatio = '1';
+            el.innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center gap-2 p-4">
+                    <span class="material-symbols-outlined text-primary/30 text-4xl animate-pulse">auto_fix_high</span>
+                    <span class="text-[10px] text-slate-600 animate-pulse">Variation ${i + 1}</span>
+                    <div class="w-16 h-1 rounded-full bg-primary/10 overflow-hidden mt-1">
+                        <div class="h-full bg-primary/40 rounded-full" style="animation: shimmer 1.6s infinite; width: 40%"></div>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(el);
+        }
+
+        section.classList.remove('hidden');
+    }
+
+    function clearRegenSkeletons() {
+        document.querySelectorAll('.regen-skeleton-placeholder').forEach(el => el.remove());
+        const grid = document.getElementById('regeneratedGrid');
+        if (grid.children.length === 0) {
+            document.getElementById('regeneratedSection').classList.add('hidden');
+        }
+    }
+
+    function displayRegeneratedImages(data) {
+        const section = document.getElementById('regeneratedSection');
+        const grid = document.getElementById('regeneratedGrid');
+        const timestamp = document.getElementById('regenTimestamp');
+
+        // Update timestamp
+        const now = new Date();
+        timestamp.textContent = 'Generated at ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        // Collect images from response (support single or array)
+        const images = [];
+        if (data.images && Array.isArray(data.images)) {
+            images.push(...data.images);
+        } else if (data.image_url) {
+            images.push({ url: data.image_url, prompt: data.image_data?.prompt || '' });
+        }
+
+        if (images.length === 0) return;
+
+        // Remove any skeleton placeholders first
+        grid.querySelectorAll('.regen-skeleton-placeholder').forEach(el => el.remove());
+
+        const fragment = document.createDocumentFragment();
+        images.forEach((img, idx) => {
+            const url = img.url || img.image_url || img;
+            const card = document.createElement('div');
+            card.className = 'regen-card group';
+            card.innerHTML = `
+                <div class="aspect-square overflow-hidden rounded-t-xl bg-black/20">
+                    <img src="${escapeHtml(url)}" alt="Variation ${idx + 1}" class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105">
+                </div>
+                <div class="p-3 flex items-center justify-between gap-2">
+                    <span class="text-[10px] text-slate-500 font-medium">Variation ${idx + 1}</span>
+                    <div class="flex gap-1">
+                        <button onclick="downloadRegenImage('${escapeHtml(url)}', ${idx + 1})" class="p-1.5 hover:bg-white/5 rounded-md text-slate-400 hover:text-white transition-colors" title="Download">
+                            <span class="material-symbols-outlined text-base">download</span>
+                        </button>
+                        <button onclick="shareRegenImage('${escapeHtml(url)}')" class="p-1.5 hover:bg-white/5 rounded-md text-slate-400 hover:text-white transition-colors" title="Share">
+                            <span class="material-symbols-outlined text-base">share</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+            fragment.appendChild(card);
+        });
+
+        // If this is the first batch, clear any previous regen results
+        // (prepend new batch before existing ones)
+        grid.insertBefore(fragment, grid.firstChild);
+
+        // Reveal section with smooth scroll
+        section.classList.remove('hidden');
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function downloadRegenImage(url, index) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `regen-variation-${index}-${Date.now()}.png`;
+        link.click();
+    }
+
+    function shareRegenImage(url) {
+        if (navigator.share) {
+            navigator.share({ title: 'Regenerated Image', url }).catch(() => {
+                navigator.clipboard.writeText(url);
+                alert('Image URL copied to clipboard!');
+            });
+        } else {
+            navigator.clipboard.writeText(url);
+            alert('Image URL copied to clipboard!');
+        }
+    }
 </script>
 @endpush
