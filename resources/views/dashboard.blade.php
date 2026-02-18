@@ -12,6 +12,7 @@
 <p class="text-lg text-slate-400 font-medium">What will you imagine today? Your creative tools are ready and waiting.</p>
 </div>
 </section>
+
 <!-- Stats Grid -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 <div class="glass p-6 rounded-2xl flex items-center justify-between border-l-4 border-l-primary hover:translate-y-[-4px] transition-transform">
@@ -42,27 +43,148 @@
 </div>
 </div>
 </div>
+
 <!-- Quick Start Prompt -->
 <section class="glass p-8 rounded-3xl border border-primary/20 bg-gradient-to-b from-white/[0.02] to-transparent">
-<h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
-<span class="material-symbols-outlined text-primary">rocket_launch</span>
-                        Quick Start
-                    </h3>
-<div class="relative group">
-<textarea class="w-full bg-background-dark/50 border-white/10 rounded-2xl p-6 pr-32 text-white placeholder:text-slate-600 focus:ring-primary/50 focus:border-primary transition-all resize-none" placeholder="Describe the image you want to create... (e.g., 'Cyberpunk city street at night in 8k resolution, cinematic lighting, neon blue and pink')" rows="3"></textarea>
-<button class="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
-<span>Generate</span>
-<span class="material-symbols-outlined">auto_fix</span>
-</button>
-</div>
-<div class="flex gap-4 mt-4">
-<span class="text-xs text-slate-500">Presets:</span>
-<button class="text-[10px] px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Photorealistic</button>
-<button class="text-[10px] px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Oil Painting</button>
-<button class="text-[10px] px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Cyberpunk</button>
-<button class="text-[10px] px-3 py-1 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">3D Render</button>
-</div>
+    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+        <span class="material-symbols-outlined text-primary">rocket_launch</span>
+        Quick Start
+        <span class="ml-auto text-[10px] px-2 py-1 bg-primary/10 text-primary rounded-full font-bold uppercase tracking-widest border border-primary/20">Nano Banana AI</span>
+    </h3>
+    <div class="relative">
+        <textarea
+            id="quickPrompt"
+            class="w-full bg-background-dark/50 border border-white/10 rounded-2xl p-6 pr-36 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none"
+            placeholder="Describe the image you want to create... (e.g., 'Cyberpunk city street at night in 8k resolution, cinematic lighting, neon blue and pink')"
+            rows="3"
+            onkeydown="if(event.ctrlKey && event.key==='Enter') quickGenerate()"
+        ></textarea>
+        <button
+            id="quickGenerateBtn"
+            onclick="quickGenerate()"
+            class="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+        >
+            <span id="quickBtnText">Generate</span>
+            <span id="quickBtnIcon" class="material-symbols-outlined text-lg">auto_fix</span>
+        </button>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-4 items-center">
+        <span class="text-xs text-slate-500 shrink-0">Presets:</span>
+        <button onclick="setPreset('Photorealistic portrait in golden hour lighting, 8k, ultra detailed, cinematic')" class="text-[10px] px-3 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Photorealistic</button>
+        <button onclick="setPreset('Oil painting of a serene mountain landscape with lake, impressionist style, vibrant colors')" class="text-[10px] px-3 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Oil Painting</button>
+        <button onclick="setPreset('Cyberpunk city street at night in 8k resolution, cinematic lighting, neon blue and pink, rain reflections')" class="text-[10px] px-3 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Cyberpunk</button>
+        <button onclick="setPreset('3D render of a futuristic spaceship in deep space, volumetric lighting, ultra realistic, 4k')" class="text-[10px] px-3 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">3D Render</button>
+        <span class="ml-auto text-[10px] text-slate-600">Ctrl+Enter to generate</span>
+    </div>
 </section>
+
+<!-- Generation Result Panel -->
+<section id="quickResultSection" class="hidden">
+    <div class="glass rounded-3xl border border-primary/30 overflow-hidden">
+
+        <!-- Loading State -->
+        <div id="quickLoadingState" class="p-16 flex flex-col items-center gap-8">
+            <div class="relative w-28 h-28">
+                <div class="absolute inset-0 rounded-full border-4 border-primary/10 animate-ping" style="animation-duration:2s"></div>
+                <div class="absolute inset-0 rounded-full border-4 border-t-primary border-r-primary/40 border-b-transparent border-l-transparent animate-spin"></div>
+                <div class="absolute inset-2 rounded-full border-4 border-t-secondary border-r-transparent border-b-transparent border-l-secondary/40 animate-spin" style="animation-direction:reverse;animation-duration:1.5s"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-3xl">auto_fix</span>
+                </div>
+            </div>
+            <div class="text-center space-y-2">
+                <p class="text-white font-black text-2xl">Generating your image</p>
+                <p class="text-slate-500 text-sm">Nano Banana AI is crafting your vision...</p>
+                <div class="flex items-center justify-center gap-1 mt-4">
+                    <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay:0s"></div>
+                    <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay:0.15s"></div>
+                    <div class="w-2 h-2 rounded-full bg-primary animate-bounce" style="animation-delay:0.3s"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result State -->
+        <div id="quickResultContent" class="hidden">
+            <div class="flex flex-col lg:flex-row min-h-[420px]">
+                <!-- Image Panel -->
+                <div class="lg:w-[55%] relative overflow-hidden bg-black">
+                    <img
+                        id="quickResultImg"
+                        src=""
+                        alt=""
+                        class="w-full h-full object-cover min-h-80 lg:min-h-[420px] transition-opacity duration-500"
+                        style="opacity:0"
+                        onload="this.style.opacity='1'"
+                    >
+                    <!-- Gradient overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-background-dark/60 hidden lg:block pointer-events-none"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-background-dark/80 via-transparent to-transparent lg:hidden pointer-events-none"></div>
+                    <!-- Success badge -->
+                    <div class="absolute top-4 left-4 flex items-center gap-2 bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 text-emerald-400 px-3 py-1.5 rounded-full text-xs font-bold">
+                        <span class="material-symbols-outlined text-sm" style="font-size:14px">check_circle</span>
+                        Generated
+                    </div>
+                </div>
+
+                <!-- Info Panel -->
+                <div class="lg:w-[45%] p-8 flex flex-col justify-between gap-6 bg-gradient-to-br from-surface-dark to-background-dark">
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-[10px] px-2.5 py-1 bg-primary/15 text-primary rounded-full font-bold uppercase tracking-widest border border-primary/20">Nano Banana AI</span>
+                            <span class="text-[10px] text-slate-600">gemini-2.5-flash-image</span>
+                        </div>
+                        <div>
+                            <h4 class="text-white font-black text-xl mb-1">Generation Complete</h4>
+                            <p class="text-slate-500 text-xs mb-3">Your image has been saved to gallery</p>
+                        </div>
+                        <div class="bg-white/[0.03] border border-white/5 rounded-xl p-4">
+                            <p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-2">Prompt</p>
+                            <p id="quickResultPrompt" class="text-slate-300 text-sm leading-relaxed"></p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <a
+                            id="quickDownloadBtn"
+                            href="#"
+                            target="_blank"
+                            class="flex items-center justify-center gap-2 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
+                        >
+                            <span class="material-symbols-outlined text-lg">download</span>
+                            Download Image
+                        </a>
+                        <div class="grid grid-cols-2 gap-3">
+                            <a href="{{ route('gallery') }}" class="flex items-center justify-center gap-1.5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold rounded-xl transition-all border border-white/10">
+                                <span class="material-symbols-outlined text-base">photo_library</span>
+                                Gallery
+                            </a>
+                            <button onclick="resetQuickStart()" class="flex items-center justify-center gap-1.5 py-2.5 bg-secondary/10 hover:bg-secondary/20 text-secondary text-sm font-bold rounded-xl transition-all border border-secondary/20">
+                                <span class="material-symbols-outlined text-base">add_circle</span>
+                                New Image
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="quickErrorState" class="hidden p-16 flex flex-col items-center gap-6">
+            <div class="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                <span class="material-symbols-outlined text-red-400 text-4xl">error_outline</span>
+            </div>
+            <div class="text-center space-y-2">
+                <p class="text-white font-black text-xl">Generation Failed</p>
+                <p id="quickErrorMsg" class="text-slate-500 text-sm max-w-sm"></p>
+            </div>
+            <button onclick="resetQuickStart()" class="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/15 text-white font-bold rounded-xl transition-all border border-white/10">
+                <span class="material-symbols-outlined text-base">refresh</span>
+                Try Again
+            </button>
+        </div>
+    </div>
+</section>
+
 <!-- Recent Generations -->
 <section>
 <div class="flex justify-between items-end mb-8">
@@ -70,15 +192,15 @@
 <h3 class="text-2xl font-black text-white">Recent Generations</h3>
 <p class="text-slate-400 text-sm">Your latest creative outputs</p>
 </div>
-<button class="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
+<a href="{{ route('gallery') }}" class="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
                             View all gallery
                             <span class="material-symbols-outlined text-sm">arrow_forward</span>
-</button>
+</a>
 </div>
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 <!-- Card 1 -->
 <div class="group relative rounded-2xl overflow-hidden glass aspect-square border-none">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Abstract vibrant nebula AI generation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD31e_R7BnXWEkjhAuA8SqdCRObvdLA1FmICuCO0tO7WLZqYkOKbM2yvN5A2ZYVcPsroM6ff5pB50Tx3_yqhLoorpOHERhG8JSYeSBhgRsW4LNnEIduR-ElJm-C7HP9ugGil_OLbmurpFONcAtcMWyXkmuoFjijW7u6pMzaRZ-UEvk1Yj1KfV5tEGgxGXlOUxXehXR7FwZ6tAvEYlaifRGJN7QqNTcsE_lewc_vPkCDtQ35Y9Nz3POl7aCXAJAWmvHnuN6QFPQFltw"/>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Abstract vibrant nebula AI generation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD31e_R7BnXWEkjhAuA8SqdCRObvdLA1FmICuCO0tO7WLZqYkOKbM2yvN5A2ZYVcPsroM6ff5pB50Tx3_yqhLoorpOHERhG8JSYeSBhgRsW4LNnEIduR-ElJm-C7HP9ugGil_OLbmurpFONcAtcMWyXkmuoFjijW7u6pMzaRZ-UEvk1Yj1KfV5tEGgxGXlOUxXehXR7FwZ6tAvEYlaifRGJN7QqNTcsE_lewc_vPkCDtQ35Y9Nz3POl7aCXAJAWmvHnuN6QFPQFltw"/>
 <div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
 <p class="text-white text-sm font-bold mb-3 truncate">Cosmic Nebula Abstract</p>
 <button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2">
@@ -89,7 +211,7 @@
 </div>
 <!-- Card 2 -->
 <div class="group relative rounded-2xl overflow-hidden glass aspect-square border-none">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Cyberpunk street samurai aesthetic AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP6VLBnXkg0mh2lLFTuasX0ATy9t1Sdo0PrGfLs60ad7fuGIWFEWzeKfBMeXHSZnFK8vbs6QohZvEoVVZMV3Xw-KgeAJULgEEEKDlPGOO6ZzDtKcDrwHIlUmORY64UZXM28UnfVAs0_GjnplPl8tL9G2Tlk96aapyj1TbuLt_j4RAZwlP99eZC2nb5jsh83lw_REVb7GsJHChwcmtlmYiVHq_AoJKL94FPwhVv-PHY14JKaGg1pFC-ea8PDOA4SgUP7aWvQOVPsmA"/>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Cyberpunk street samurai aesthetic AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP6VLBnXkg0mh2lLFTuasX0ATy9t1Sdo0PrGfLs60ad7fuGIWFEWzeKfBMeXHSZnFK8vbs6QohZvEoVVZMV3Xw-KgeAJULgEEEKDlPGOO6ZzDtKcDrwHIlUmORY64UZXM28UnfVAs0_GjnplPl8tL9G2Tlk96aapyj1TbuLt_j4RAZwlP99eZC2nb5jsh83lw_REVb7GsJHChwcmtlmYiVHq_AoJKL94FPwhVv-PHY14JKaGg1pFC-ea8PDOA4SgUP7aWvQOVPsmA"/>
 <div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
 <p class="text-white text-sm font-bold mb-3 truncate">Neon Samurai 2077</p>
 <button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2">
@@ -100,7 +222,7 @@
 </div>
 <!-- Card 3 -->
 <div class="group relative rounded-2xl overflow-hidden glass aspect-square border-none">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Ethereal landscape floating islands AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgeLLAfm1EJ7Hl7XJZOWHB6jSk6EQoA0stLjg49nWXdE2z_hZrfSZPPOARt9UrkdcS9crwy0l8TdSXkNGs2zvQ-d25pdJhy5Py_QOiMV3CDqtjKMgnjpryJZXa7guETFV7oM7KY9W2Tx1U2qFpEq9PY7nway3C1lQi3_JtrjMlCaO1kcuwfJgC4N2c5831SQNxPFkgyIkp-a7T6kYdawk36vOi1sXm45V7HR3MVedj493aEts4LTtllrlxb3pFgx140lGXG0937M8"/>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Ethereal landscape floating islands AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgeLLAfm1EJ7Hl7XJZOWHB6jSk6EQoA0stLjg49nWXdE2z_hZrfSZPPOARt9UrkdcS9crwy0l8TdSXkNGs2zvQ-d25pdJhy5Py_QOiMV3CDqtjKMgnjpryJZXa7guETFV7oM7KY9W2Tx1U2qFpEq9PY7nway3C1lQi3_JtrjMlCaO1kcuwfJgC4N2c5831SQNxPFkgyIkp-a7T6kYdawk36vOi1sXm45V7HR3MVedj493aEts4LTtllrlxb3pFgx140lGXG0937M8"/>
 <div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
 <p class="text-white text-sm font-bold mb-3 truncate">Floating Islands Ethereal</p>
 <button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2">
@@ -111,7 +233,7 @@
 </div>
 <!-- Card 4 -->
 <div class="group relative rounded-2xl overflow-hidden glass aspect-square border-none">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" data-alt="Futuristic glass architecture minimal AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcd5t05N1BxIWSMYg_UNmi1KHVdPlL5JGZI-aMBURvx1xsospAoqnHYzBO2i42f7mupza6FXIebPB_I-HWhY4geCvvsrHWaDDvyrHbjRoC2RQBU3nJBNOI0ZvHPI028dWNgqS-trchE-xDdTNGPvrW5hAugv4zqv8T664M7pwiSlR6zAy86mG7Kv9CSL6Ynt2Yzd-2wqFr_MwEaRPyG9kRxQ54YNZi8AiayJ-gq2v8ipAoxlDbRIe80Q4SeC01Q9r79_z8LFOb9bo"/>
+<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Futuristic glass architecture minimal AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcd5t05N1BxIWSMYg_UNmi1KHVdPlL5JGZI-aMBURvx1xsospAoqnHYzBO2i42f7mupza6FXIebPB_I-HWhY4geCvvsrHWaDDvyrHbjRoC2RQBU3nJBNOI0ZvHPI028dWNgqS-trchE-xDdTNGPvrW5hAugv4zqv8T664M7pwiSlR6zAy86mG7Kv9CSL6Ynt2Yzd-2wqFr_MwEaRPyG9kRxQ54YNZi8AiayJ-gq2v8ipAoxlDbRIe80Q4SeC01Q9r79_z8LFOb9bo"/>
 <div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
 <p class="text-white text-sm font-bold mb-3 truncate">Minimalist Architecture</p>
 <button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2">
@@ -123,3 +245,96 @@
 </div>
 </section>
 @endsection
+
+@push('scripts')
+<script>
+async function quickGenerate() {
+    const prompt = document.getElementById('quickPrompt').value.trim();
+    if (!prompt) {
+        document.getElementById('quickPrompt').focus();
+        document.getElementById('quickPrompt').classList.add('ring-2', 'ring-red-500/50', 'border-red-500/50');
+        setTimeout(() => document.getElementById('quickPrompt').classList.remove('ring-2', 'ring-red-500/50', 'border-red-500/50'), 2000);
+        return;
+    }
+
+    const resultSection  = document.getElementById('quickResultSection');
+    const loadingState   = document.getElementById('quickLoadingState');
+    const resultContent  = document.getElementById('quickResultContent');
+    const errorState     = document.getElementById('quickErrorState');
+    const btn            = document.getElementById('quickGenerateBtn');
+    const btnText        = document.getElementById('quickBtnText');
+    const btnIcon        = document.getElementById('quickBtnIcon');
+
+    // Show result panel with loading
+    resultSection.classList.remove('hidden');
+    loadingState.classList.remove('hidden');
+    resultContent.classList.add('hidden');
+    errorState.classList.add('hidden');
+
+    // Disable button
+    btn.disabled = true;
+    btnText.textContent = 'Generating...';
+    btnIcon.textContent = 'hourglass_empty';
+
+    // Smooth scroll to result
+    setTimeout(() => resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+        const response = await fetch('/dashboard/image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': csrfToken,
+            },
+            body: JSON.stringify({ prompt }),
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.error || 'Image generation failed. Please try again.');
+        }
+
+        // Populate result
+        const img = document.getElementById('quickResultImg');
+        img.style.opacity = '0';
+        img.src = data.image_url;
+        img.alt = prompt;
+
+        document.getElementById('quickResultPrompt').textContent = data.prompt || prompt;
+        document.getElementById('quickDownloadBtn').href = data.image_url;
+
+        loadingState.classList.add('hidden');
+        resultContent.classList.remove('hidden');
+
+        resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch (err) {
+        loadingState.classList.add('hidden');
+        document.getElementById('quickErrorMsg').textContent = err.message;
+        errorState.classList.remove('hidden');
+    } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Generate';
+        btnIcon.textContent = 'auto_fix';
+    }
+}
+
+function setPreset(text) {
+    const ta = document.getElementById('quickPrompt');
+    ta.value = text;
+    ta.focus();
+    ta.classList.remove('ring-2', 'ring-red-500/50', 'border-red-500/50');
+}
+
+function resetQuickStart() {
+    document.getElementById('quickResultSection').classList.add('hidden');
+    document.getElementById('quickPrompt').value = '';
+    document.getElementById('quickPrompt').focus();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+@endpush
