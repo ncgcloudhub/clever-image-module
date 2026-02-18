@@ -287,7 +287,78 @@
         40%          { opacity:1;   transform:scale(1);   }
     }
 
-    /* ── Drag-over glow on canvas ────────────────────── */
+    /* ── Sessions modal ──────────────────────────────── */
+    /* NOTE: no display property on #sessionsModal ID — JS sets display:flex to open */
+    .sess-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        backdrop-filter: blur(6px);
+        z-index: 100;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+    }
+    .sess-modal-inner {
+        background: rgba(18, 22, 30, 0.98);
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 1.5rem;
+        width: 100%;
+        max-width: 620px;
+        max-height: 78vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+    }
+    #sessionCards {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.625rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.375rem;
+        min-height: 140px;
+    }
+    #sessionCards::-webkit-scrollbar { width: 3px; }
+    #sessionCards::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+    .sess-card {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 0.875rem;
+        border: 1px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .sess-card:hover {
+        background: rgba(255,255,255,0.04);
+        border-color: rgba(255,255,255,0.07);
+    }
+    .sess-card.is-current {
+        border-color: rgba(19,164,236,0.25);
+        background: rgba(19,164,236,0.04);
+    }
+    .sess-card-thumb {
+        width: 52px;
+        height: 52px;
+        border-radius: 0.625rem;
+        object-fit: cover;
+        flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.07);
+    }
+    .sess-card-no-thumb {
+        width: 52px;
+        height: 52px;
+        border-radius: 0.625rem;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, rgba(19,164,236,0.1), rgba(139,92,246,0.1));
+        border: 1px solid rgba(255,255,255,0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
     /* ── Drag-over glow on canvas ─────────────────────*/
     #canvasStage.drag-over {
@@ -390,6 +461,14 @@
         </div>
         <span class="text-xs font-semibold text-white flex-1">AI Studio Chat</span>
 
+        {{-- Sessions button --}}
+        <button onclick="event.stopPropagation(); openSessionsModal()"
+            id="sessionsToggleBtn"
+            title="Past sessions"
+            class="size-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors flex-shrink-0">
+            <span class="material-symbols-outlined text-sm">history</span>
+        </button>
+
         {{-- New chat button --}}
         <button onclick="event.stopPropagation(); newChat()"
             title="New chat"
@@ -450,6 +529,42 @@
     </div>
 </div>
 
+{{-- ══════════════════════════════════════════════════════════ --}}
+{{-- SESSIONS MODAL                                             --}}
+{{-- style="display:none" here so JS sets display:flex — avoids --}}
+{{-- CSS ID-selector specificity overriding hidden state        --}}
+{{-- ══════════════════════════════════════════════════════════ --}}
+<div id="sessionsModal" class="sess-modal-backdrop" style="display:none;" onclick="closeSessionsModal()">
+    <div class="sess-modal-inner" onclick="event.stopPropagation()">
+
+        {{-- Modal header --}}
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-white/07 flex-shrink-0">
+            <div class="size-7 rounded-lg bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-primary text-sm">history</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h3 class="text-sm font-semibold text-white">Past Sessions</h3>
+                <p class="text-[10px] text-slate-500 mt-0.5">Click any session to load &amp; continue it</p>
+            </div>
+            <input id="sessionSearch" type="text" placeholder="Search sessions…"
+                oninput="filterSessions(this.value)"
+                class="text-xs bg-white/05 border border-white/07 rounded-xl px-3 py-1.5 text-slate-300 placeholder-slate-600 outline-none w-36 focus:border-primary/40 flex-shrink-0">
+            <button onclick="closeSessionsModal()"
+                class="size-7 rounded-lg bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-colors flex-shrink-0">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
+
+        {{-- Session cards (JS-populated) --}}
+        <div id="sessionCards">
+            <div class="flex flex-col items-center justify-center py-10 gap-2">
+                <div class="size-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                <p class="text-xs text-slate-600">Loading…</p>
+            </div>
+        </div>
+
+    </div>
+</div>
 
 @endsection
 
@@ -490,29 +605,66 @@ function newChat() {
 
 async function loadSession(sessionId) {
     closeSessionsModal();
+
+    // Immediately show loading in messages area; dim input so user knows to wait
+    const msgEl   = document.getElementById('minichatMessages');
+    const inputEl = document.getElementById('minichatInput');
+    msgEl.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-10 gap-2">
+            <div class="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+            <p class="text-xs text-slate-500">Loading session…</p>
+        </div>`;
+    inputEl.style.opacity        = '0.4';
+    inputEl.style.pointerEvents  = 'none';
+
+    const restore = () => {
+        inputEl.style.opacity       = '';
+        inputEl.style.pointerEvents = '';
+    };
+
     try {
         const r    = await fetch(`/playground/api/session/${sessionId}`, {
             headers: { 'X-CSRF-TOKEN': CSRF, Accept: 'application/json' }
         });
         const data = await r.json();
-        if (!data.success) return;
-        const sess = data.session;
 
+        if (!data.success) {
+            renderMiniMessages(); // revert to whatever was there
+            restore();
+            return;
+        }
+
+        const sess = data.session;
         S.sessionId      = sess.session_id;
         S.conversationId = sess.conversation_id;
         S.messages       = sess.messages || [];
+        S.refFile        = null;
+        removeRef();
+
+        // Set activeFlowIdx to last generated image
+        const imgs = S.messages.filter(m => m.imageUrl);
+        S.activeFlowIdx = imgs.length - 1;
 
         renderMiniMessages();
         renderFlowStrip();
 
-        // Show last generated image on canvas
+        // Show last generated image on canvas (or clear if none)
         const lastImg = [...S.messages].reverse().find(m => m.imageUrl);
-        if (lastImg) renderCanvasImage(lastImg.imageUrl);
+        renderCanvasImage(lastImg ? lastImg.imageUrl : null);
 
-        const imgs = S.messages.filter(m => m.imageUrl);
         document.getElementById('genCount').textContent     = `${imgs.length} generation${imgs.length !== 1 ? 's' : ''}`;
-        document.getElementById('sessionLabel').textContent = truncate(S.messages.find(m=>m.role==='user')?.prompt || 'Session', 20);
-    } catch (e) { console.error('Load session error', e); }
+        document.getElementById('sessionLabel').textContent = truncate(S.messages.find(m => m.role === 'user')?.prompt || 'Session', 20);
+
+        restore();
+
+        // Focus input so user can continue chatting immediately
+        document.getElementById('miniPromptInput').focus();
+
+    } catch (e) {
+        console.error('Load session error', e);
+        renderMiniMessages();
+        restore();
+    }
 }
 
 async function persistSession() {
@@ -548,8 +700,9 @@ async function sendMiniChat() {
     S.messages.push(userMsg);
     appendMiniMessage(userMsg);
 
-    // Hide empty hint
-    document.getElementById('minichatEmpty').style.display = 'none';
+    // Hide empty hint (may not exist in DOM when a session was loaded)
+    const emptyHint = document.getElementById('minichatEmpty');
+    if (emptyHint) emptyHint.style.display = 'none';
 
     showMiniTyping();
 
@@ -606,9 +759,23 @@ async function sendMiniChat() {
 }
 
 // ── Render: mini messages ─────────────────────────────────────────────────────
+function getOrCreateEmpty() {
+    let empty = document.getElementById('minichatEmpty');
+    if (!empty) {
+        // Recreate if it was destroyed by the loading-state innerHTML replacement
+        empty = document.createElement('div');
+        empty.id = 'minichatEmpty';
+        empty.className = 'flex flex-col items-center justify-center py-8 gap-2 text-center';
+        empty.innerHTML =
+            '<span class="material-symbols-outlined text-2xl text-slate-700">chat_bubble_outline</span>' +
+            '<p class="text-[11px] text-slate-600">Describe an image to generate</p>';
+    }
+    return empty;
+}
+
 function renderMiniMessages() {
-    const el = document.getElementById('minichatMessages');
-    const empty = document.getElementById('minichatEmpty');
+    const el    = document.getElementById('minichatMessages');
+    const empty = getOrCreateEmpty();
 
     if (!S.messages.length) {
         el.innerHTML = '';
@@ -649,9 +816,9 @@ function buildMiniMsgHTML(msg) {
 }
 
 function appendMiniMessage(msg) {
-    const el = document.getElementById('minichatMessages');
+    const el    = document.getElementById('minichatMessages');
     const empty = document.getElementById('minichatEmpty');
-    if (el.contains(empty)) { empty.style.display = 'none'; }
+    if (empty && el.contains(empty)) { empty.style.display = 'none'; }
     const div = document.createElement('div');
     div.innerHTML = buildMiniMsgHTML(msg);
     el.appendChild(div.firstElementChild);
@@ -757,6 +924,95 @@ function toggleMinichat() {
     panel.classList.toggle('collapsed', !S.minichatOpen);
     icon.textContent = S.minichatOpen ? 'expand_more' : 'expand_less';
 }
+
+// ── Sessions modal ────────────────────────────────────────────────────────────
+let allSessions = [];
+
+function openSessionsModal() {
+    const btn = document.getElementById('sessionsToggleBtn');
+    document.getElementById('sessionsModal').style.display = 'flex';
+    document.getElementById('sessionSearch').value = '';
+    btn.classList.add('text-primary');
+    loadSessions();
+}
+
+function closeSessionsModal() {
+    document.getElementById('sessionsModal').style.display = 'none';
+    document.getElementById('sessionsToggleBtn').classList.remove('text-primary');
+}
+
+async function loadSessions() {
+    document.getElementById('sessionCards').innerHTML = `
+        <div class="flex flex-col items-center justify-center py-10 gap-2">
+            <div class="size-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+            <p class="text-xs text-slate-600">Loading…</p>
+        </div>`;
+    try {
+        const r    = await fetch('{{ route("playground.api.sessions") }}', {
+            headers: { 'X-CSRF-TOKEN': CSRF, Accept: 'application/json' }
+        });
+        const data = await r.json();
+        allSessions = (data.success && data.sessions) ? data.sessions : [];
+        renderSessionCards(allSessions);
+    } catch {
+        document.getElementById('sessionCards').innerHTML =
+            '<p class="text-xs text-slate-600 text-center py-8">Could not load sessions</p>';
+    }
+}
+
+function renderSessionCards(sessions) {
+    const el = document.getElementById('sessionCards');
+    if (!sessions.length) {
+        el.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-10 gap-2">
+                <span class="material-symbols-outlined text-3xl text-slate-700">history</span>
+                <p class="text-xs text-slate-600">No past sessions found</p>
+            </div>`;
+        return;
+    }
+    el.innerHTML = sessions.map(s => {
+        const msgs     = Array.isArray(s.messages) ? s.messages : [];
+        const preview  = msgs.find(m => m.role === 'user')?.prompt || 'Empty session';
+        const imgCount = msgs.filter(m => m.imageUrl).length;
+        const thumb    = msgs.find(m => m.imageUrl)?.imageUrl || null;
+        const date     = formatDate(s.last_updated_at || s.updated_at);
+        const isCurrent = s.session_id === S.sessionId;
+
+        const thumbHTML = thumb
+            ? `<img src="${esc(thumb)}" class="sess-card-thumb" alt="">`
+            : `<div class="sess-card-no-thumb"><span class="material-symbols-outlined text-slate-600 text-lg">image</span></div>`;
+
+        return `
+        <div class="sess-card${isCurrent ? ' is-current' : ''}" onclick="loadSession('${esc(s.session_id)}')">
+            ${thumbHTML}
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-1.5">
+                    <p class="text-xs font-medium text-slate-200 truncate">${esc(truncate(preview, 44))}</p>
+                    ${isCurrent ? '<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-medium flex-shrink-0">active</span>' : ''}
+                </div>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-[10px] text-slate-500">${date}</span>
+                    <span class="text-slate-700 text-[10px]">·</span>
+                    <span class="text-[10px] text-slate-500">${imgCount} image${imgCount !== 1 ? 's' : ''}</span>
+                </div>
+            </div>
+            <span class="material-symbols-outlined text-slate-600 flex-shrink-0">chevron_right</span>
+        </div>`;
+    }).join('');
+}
+
+function filterSessions(q) {
+    const filtered = q.trim()
+        ? allSessions.filter(s => {
+            const msgs = Array.isArray(s.messages) ? s.messages : [];
+            return msgs.map(m => m.prompt || '').join(' ').toLowerCase().includes(q.toLowerCase());
+          })
+        : allSessions;
+    renderSessionCards(filtered);
+}
+
+// Close modal on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSessionsModal(); });
 
 // ── Canvas actions ─────────────────────────────────────────────────────────────
 function clearCanvas() {
