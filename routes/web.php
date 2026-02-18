@@ -79,10 +79,6 @@ Route::middleware('auth')->group(function () {
     // ==================================
     // NANO BANANA PLAYGROUND ROUTES
     // ==================================
-    // Chat-style playground
-    Route::get('/playground', [NanoBananaPlaygroundController::class, 'index'])
-        ->name('playground');
-
     // Canvas playground (blank canvas + minichat)
     Route::get('/playground/canvas', [NanoBananaPlaygroundController::class, 'canvas'])
         ->name('playground.canvas');

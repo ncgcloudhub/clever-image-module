@@ -365,10 +365,6 @@
                 </div>
                 <span class="text-xs font-semibold text-white">Canvas Studio</span>
             </div>
-            <a href="{{ route('playground') }}" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 text-xs transition-colors">
-                <span class="material-symbols-outlined text-sm">chat</span>
-                <span>Chat mode</span>
-            </a>
             <button onclick="clearCanvas()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 text-xs transition-colors">
                 <span class="material-symbols-outlined text-sm">clear_all</span>
                 <span>Clear</span>

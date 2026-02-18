@@ -9,14 +9,6 @@ use Illuminate\Support\Facades\Log;
 class NanoBananaPlaygroundController extends Controller
 {
     /**
-     * Chat-style playground page.
-     */
-    public function index()
-    {
-        return view('playground.index');
-    }
-
-    /**
      * Canvas-style playground page.
      */
     public function canvas()

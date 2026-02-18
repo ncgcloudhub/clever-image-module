@@ -31,16 +31,9 @@
     <div class="sidebar-label pt-3 pb-1 px-4">
         <p class="text-[10px] uppercase tracking-widest text-slate-600 font-bold">Playground</p>
     </div>
-    <a href="{{ route('playground') }}"
-       title="Chat Playground"
-       class="{{ request()->routeIs('playground') && !request()->is('playground/canvas') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('playground') && !request()->is('playground/canvas') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
-        <span class="material-symbols-outlined flex-shrink-0">smart_toy</span>
-        <span class="sidebar-label text-sm font-medium whitespace-nowrap">Chat Playground</span>
-        <span class="sidebar-label ml-auto px-1.5 py-0.5 text-[9px] font-bold bg-gradient-to-r from-primary to-secondary text-white rounded-full uppercase tracking-wide">AI</span>
-    </a>
     <a href="{{ route('playground.canvas') }}"
        title="Canvas Studio"
-       class="{{ request()->is('playground/canvas') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->is('playground/canvas') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
+       class="{{ request()->routeIs('playground.canvas') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('playground.canvas') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
         <span class="material-symbols-outlined flex-shrink-0">draw</span>
         <span class="sidebar-label text-sm font-medium whitespace-nowrap">Canvas Studio</span>
     </a>
