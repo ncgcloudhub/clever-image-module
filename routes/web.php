@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\OAuthClientController;
 use App\Http\Controllers\DashboardImageController;
 use App\Http\Controllers\NanoVisualToolsController;
+use App\Http\Controllers\NanoBananaPlaygroundController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\CommunityGalleryController;
 
@@ -74,6 +75,33 @@ Route::middleware('auth')->group(function () {
     
     Route::post('/api/nano-visual-tools/regenerate', [NanoVisualToolsController::class, 'regenerate'])
         ->name('api.nano.visual.tools.regenerate');
+
+    // ==================================
+    // NANO BANANA PLAYGROUND ROUTES
+    // ==================================
+    // Chat-style playground
+    Route::get('/playground', [NanoBananaPlaygroundController::class, 'index'])
+        ->name('playground');
+
+    // Canvas playground (blank canvas + minichat)
+    Route::get('/playground/canvas', [NanoBananaPlaygroundController::class, 'canvas'])
+        ->name('playground.canvas');
+
+    // Shared API proxy routes (used by both playground views)
+    Route::post('/playground/api/chat', [NanoBananaPlaygroundController::class, 'chat'])
+        ->name('playground.api.chat');
+
+    Route::get('/playground/api/sessions', [NanoBananaPlaygroundController::class, 'getSessions'])
+        ->name('playground.api.sessions');
+
+    Route::post('/playground/api/session', [NanoBananaPlaygroundController::class, 'saveSession'])
+        ->name('playground.api.session.save');
+
+    Route::get('/playground/api/session/{sessionId}', [NanoBananaPlaygroundController::class, 'getSession'])
+        ->name('playground.api.session.get');
+
+    Route::delete('/playground/api/session/{sessionId}', [NanoBananaPlaygroundController::class, 'deleteSession'])
+        ->name('playground.api.session.delete');
 
     // Gallery routes
     Route::get('/gallery', [GalleryController::class, 'index'])
