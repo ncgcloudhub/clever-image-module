@@ -360,6 +360,19 @@
         justify-content: center;
     }
 
+    /* ── Lightbox ───────────────────────────────────── */
+    /* No display property on #lightbox ID — JS sets display:flex to open */
+    .lightbox-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.9);
+        backdrop-filter: blur(8px);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+    }
+
     /* ── Drag-over glow on canvas ─────────────────────*/
     #canvasStage.drag-over {
         outline: 2px dashed rgba(19,164,236,0.5);
@@ -425,7 +438,7 @@
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary/80 hover:bg-primary text-white text-xs font-medium transition-colors backdrop-blur-sm">
                         <span class="material-symbols-outlined text-sm">recycling</span> Use as ref
                     </button>
-                    <button onclick="window.open(document.getElementById('canvasMainImage').src,'_blank')"
+                    <button onclick="openLightbox(document.getElementById('canvasMainImage').src)"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-medium transition-colors backdrop-blur-sm border border-white/10">
                         <span class="material-symbols-outlined text-sm">open_in_full</span> Expand
                     </button>
@@ -563,6 +576,29 @@
             </div>
         </div>
 
+    </div>
+</div>
+
+{{-- ══════════════════════════════════════════════════════════ --}}
+{{-- LIGHTBOX                                                   --}}
+{{-- style="display:none" — JS sets display:flex to open       --}}
+{{-- ══════════════════════════════════════════════════════════ --}}
+<div id="lightbox" class="lightbox-backdrop" style="display:none;" onclick="closeLightbox()">
+    <div class="relative flex items-center justify-center" onclick="event.stopPropagation()">
+        <img id="lightboxImg" src="" alt=""
+            class="max-w-full max-h-[88vh] rounded-2xl shadow-2xl object-contain"
+            style="max-width: min(90vw, 960px);">
+        <div class="absolute top-3 right-3 flex gap-2">
+            <a id="lightboxDownload" href="#" download="generated.jpg"
+                class="size-9 rounded-xl bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors border border-white/10"
+                onclick="event.stopPropagation()">
+                <span class="material-symbols-outlined text-sm">download</span>
+            </a>
+            <button onclick="closeLightbox()"
+                class="size-9 rounded-xl bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors border border-white/10">
+                <span class="material-symbols-outlined text-sm">close</span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -803,7 +839,7 @@ function buildMiniMsgHTML(msg) {
     }
     const imgHTML = msg.imageUrl ? `
         <img src="${esc(msg.imageUrl)}" class="mini-img-thumb mb-1.5"
-             onclick="window.open('${esc(msg.imageUrl)}','_blank')">` : '';
+             onclick="openLightbox('${esc(msg.imageUrl)}')">` : '';
     const textHTML = msg.textResponse
         ? `<p class="text-[11px] text-slate-400 leading-relaxed">${esc(truncate(msg.textResponse, 120))}</p>` : '';
     return `
@@ -1011,8 +1047,21 @@ function filterSessions(q) {
     renderSessionCards(filtered);
 }
 
-// Close modal on Escape
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSessionsModal(); });
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+function openLightbox(url) {
+    document.getElementById('lightboxImg').src       = url;
+    document.getElementById('lightboxDownload').href = url;
+    document.getElementById('lightbox').style.display = 'flex';
+}
+function closeLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.getElementById('lightboxImg').src = '';
+}
+
+// Close modals on Escape
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeLightbox(); closeSessionsModal(); }
+});
 
 // ── Canvas actions ─────────────────────────────────────────────────────────────
 function clearCanvas() {
