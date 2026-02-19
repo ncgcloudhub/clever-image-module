@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class CommunityGalleryController extends Controller
@@ -34,34 +35,41 @@ class CommunityGalleryController extends Controller
             ], 401);
         }
 
-        $service = config('services.aisite');
-
-        $http = new Client(['timeout' => 30]);
+        $service  = config('services.aisite');
+        $page     = (int) $request->input('page', 1);
+        $perPage  = (int) $request->input('per_page', 20);
+        $cacheKey = "community_gallery_page_{$page}_per_{$perPage}";
 
         try {
-            $queryParams = http_build_query([
-                'per_page' => $request->input('per_page', 20),
-                'page'     => $request->input('page', 1),
-            ]);
+            // Cache each page of the community feed for 5 minutes.
+            // The feed is shared across all users, so a single key per page
+            // is appropriate. Errors throw to prevent caching bad results.
+            $payload = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($accessToken, $service, $page, $perPage) {
+                $http = new Client(['timeout' => 30]);
 
-            $response = $http->get(
-                rtrim($service['base_url'], '/') . '/api/gallery?' . $queryParams,
-                [
-                    'headers' => [
-                        'Authorization' => 'Bearer ' . $accessToken,
-                        'Accept'        => 'application/json',
-                    ],
-                ]
-            );
+                $queryParams = http_build_query([
+                    'per_page' => $perPage,
+                    'page'     => $page,
+                ]);
 
-            $payload = json_decode((string) $response->getBody(), true);
+                $response = $http->get(
+                    rtrim($service['base_url'], '/') . '/api/gallery?' . $queryParams,
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $accessToken,
+                            'Accept'        => 'application/json',
+                        ],
+                    ]
+                );
 
-            if ($response->getStatusCode() !== 200 || empty($payload['success'])) {
-                return response()->json([
-                    'success' => false,
-                    'error'   => $payload['error'] ?? 'Failed to fetch community gallery from provider',
-                ], 500);
-            }
+                $data = json_decode((string) $response->getBody(), true);
+
+                if ($response->getStatusCode() !== 200 || empty($data['success'])) {
+                    throw new \RuntimeException($data['error'] ?? 'Failed to fetch community gallery from provider');
+                }
+
+                return $data;
+            });
 
             return response()->json($payload);
         } catch (\Throwable $e) {
