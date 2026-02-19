@@ -378,6 +378,49 @@
         outline: 2px dashed rgba(19,164,236,0.5);
         outline-offset: -2px;
     }
+
+    /* ── Canvas toolbar group (toolbar + quick chips stacked) ── */
+    #canvasToolbarGroup {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        max-width: 440px;
+    }
+    /* Remove individual positioning — parent handles it */
+    #canvasToolbarGroup #canvasToolbar {
+        position: static;
+        top: auto; left: auto; z-index: auto;
+    }
+
+    /* ── Canvas quick action chips ─────────────────────────── */
+    #canvasQuickActions {
+        display: none;
+        flex-wrap: wrap;
+        gap: 0.375rem;
+    }
+    .canvas-quick-chip {
+        font-size: 0.6875rem;
+        padding: 0.25rem 0.625rem;
+        border-radius: 99px;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(18,22,30,0.82);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+        line-height: 1.4;
+    }
+    .canvas-quick-chip:hover {
+        border-color: rgba(19,164,236,0.35);
+        background: rgba(19,164,236,0.1);
+        color: #e2e8f0;
+    }
 </style>
 @endpush
 
@@ -390,18 +433,25 @@
     {{-- ══════════════════════════════════════════════════ --}}
     <div id="canvasStage">
 
-        {{-- Top-left toolbar --}}
-        <div id="canvasToolbar">
-            <div class="flex items-center gap-2 pr-3 border-r border-white/10">
-                <div class="size-6 rounded-md bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-primary text-sm">draw</span>
+        {{-- Top-left toolbar group --}}
+        <div id="canvasToolbarGroup">
+
+            <div id="canvasToolbar">
+                <div class="flex items-center gap-2 pr-3 border-r border-white/10">
+                    <div class="size-6 rounded-md bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-sm">draw</span>
+                    </div>
+                    <span class="text-xs font-semibold text-white">Canvas Studio</span>
                 </div>
-                <span class="text-xs font-semibold text-white">Canvas Studio</span>
+                <button onclick="clearCanvas()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 text-xs transition-colors">
+                    <span class="material-symbols-outlined text-sm">clear_all</span>
+                    <span>Clear</span>
+                </button>
             </div>
-            <button onclick="clearCanvas()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 text-xs transition-colors">
-                <span class="material-symbols-outlined text-sm">clear_all</span>
-                <span>Clear</span>
-            </button>
+
+            {{-- Quick action chips — injected by JS after each generation --}}
+            <div id="canvasQuickActions"></div>
+
         </div>
 
         {{-- Top-right info --}}
@@ -635,6 +685,7 @@ function newChat() {
     renderMiniMessages();
     renderFlowStrip();
     renderCanvasImage(null);
+    renderQuickActions({});
     document.getElementById('sessionLabel').textContent = 'New session';
     document.getElementById('genCount').textContent     = '0 generations';
 }
@@ -683,6 +734,7 @@ async function loadSession(sessionId) {
 
         renderMiniMessages();
         renderFlowStrip();
+        renderQuickActions({});
 
         // Show last generated image on canvas (or clear if none)
         const lastImg = [...S.messages].reverse().find(m => m.imageUrl);
@@ -772,6 +824,7 @@ async function sendMiniChat() {
             if (aiMsg.imageUrl) {
                 renderCanvasImage(aiMsg.imageUrl);
                 renderFlowStrip();
+                renderQuickActions(data.quick_actions || {});
                 const imgs = S.messages.filter(m => m.imageUrl);
                 document.getElementById('genCount').textContent = `${imgs.length} generation${imgs.length !== 1 ? 's' : ''}`;
                 document.getElementById('sessionLabel').textContent = truncate(prompt, 20);
@@ -1149,6 +1202,38 @@ function miniResize(el) {
 
 function handleMiniKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMiniChat(); }
+}
+
+// ── Quick actions ─────────────────────────────────────────────────────────────
+function sendQuickAction(prompt) {
+    if (S.isGenerating) return;
+    const input = document.getElementById('miniPromptInput');
+    input.value = prompt;
+    miniResize(input);
+    sendMiniChat();
+}
+
+/**
+ * Render API-returned quick actions as chips under the canvas toolbar.
+ * @param {Object} actions  e.g. { "Night scene": "Transform the car to a rainy night..." }
+ */
+function renderQuickActions(actions) {
+    const el = document.getElementById('canvasQuickActions');
+
+    // Guard: API should always return a plain object {label: promptString}
+    // but defensively skip any entry whose value isn't a string (e.g. nested object)
+    const raw     = (actions && typeof actions === 'object' && !Array.isArray(actions)) ? actions : {};
+    const entries = Object.entries(raw).filter(([, v]) => typeof v === 'string' && v.length > 0);
+
+    if (!entries.length) {
+        el.style.display = 'none';
+        el.innerHTML     = '';
+        return;
+    }
+    el.innerHTML = entries.map(([label, prompt]) =>
+        `<button class="canvas-quick-chip" onclick="sendQuickAction('${esc(prompt)}')">${esc(label)}</button>`
+    ).join('');
+    el.style.display = 'flex';
 }
 
 // ── Utils ─────────────────────────────────────────────────────────────────────
