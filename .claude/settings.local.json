@@ -6,7 +6,11 @@
       "Bash(php artisan config:clear:*)",
       "Bash(php artisan:*)",
       "Bash(grep:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(composer require:*)",
+      "Bash(wsl --list:*)",
+      "Bash(docker --version:*)",
+      "Bash(where:*)"
     ]
   }
 }
