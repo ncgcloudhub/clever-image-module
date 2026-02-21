@@ -203,6 +203,119 @@
         gap: 10px;
         pointer-events: none;
     }
+
+    /* ── Regen layout: source thumbnail → variations at a glance ─────── */
+    #previewRightSection.regen-active {
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        padding: 0 !important;
+    }
+
+    /* Source image row – compact top strip */
+    #previewRightSection.regen-active #previewContent {
+        min-height: unset !important;
+        flex: 0 0 auto;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        padding: 0.875rem 1.25rem !important;
+        gap: 1rem;
+        background: rgba(0,0,0,0.25);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* Smooth thumbnail shrink – driven by CSS transition */
+    #previewContent > div {
+        transition: width 0.5s cubic-bezier(0.16,1,0.3,1),
+                    max-width 0.5s cubic-bezier(0.16,1,0.3,1),
+                    padding 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    #previewRightSection.regen-active #previewContent > div {
+        width: 82px !important;
+        max-width: 82px !important;
+        padding: 0 !important;
+        flex-shrink: 0;
+    }
+    #previewRightSection.regen-active #previewContent > div > div {
+        border-radius: 0.75rem !important;
+    }
+
+    /* Source meta label – only shown in regen mode */
+    .regen-source-meta {
+        display: none;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+    #previewRightSection.regen-active .regen-source-meta {
+        display: flex;
+    }
+
+    /* Variations section fills the remaining height, no scroll */
+    #previewRightSection.regen-active #regeneratedSection {
+        flex: 1 !important;
+        min-height: 0;
+        overflow: hidden !important;
+        padding: 0.875rem 1.25rem !important;
+        display: flex !important;
+        flex-direction: column;
+    }
+    #previewRightSection.regen-active #regeneratedSection > div {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border-top: none !important;
+        padding-top: 0 !important;
+        min-height: 0;
+    }
+    /* Label row stays compact */
+    #previewRightSection.regen-active #regeneratedSection > div > div:first-child {
+        flex-shrink: 0;
+        margin-bottom: 0.625rem;
+    }
+    /* Grid becomes a flex row that fills the remaining height */
+    #previewRightSection.regen-active #regeneratedGrid {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.75rem;
+        min-height: 0;
+        grid-template-columns: unset !important;
+    }
+    #previewRightSection.regen-active #regeneratedGrid > * {
+        flex: 1;
+        min-width: 0;
+        min-height: 0;
+        aspect-ratio: unset !important; /* override inline style */
+    }
+    #previewRightSection.regen-active .regen-card {
+        display: flex !important;
+        flex-direction: column;
+        height: 100%;
+    }
+    #previewRightSection.regen-active .regen-card > div:first-child {
+        flex: 1 !important;
+        aspect-ratio: unset !important;
+    }
+    #previewRightSection.regen-active .regen-skeleton {
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column;
+    }
+    #previewRightSection.regen-active .regen-skeleton > div {
+        flex: 1;
+        min-height: 0;
+    }
+    /* Fade-in for the variations section when it appears */
+    #previewRightSection.regen-active #regeneratedSection {
+        animation: regenSectionIn 0.35s 0.15s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    @keyframes regenSectionIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 </style>
 @endpush
 
@@ -309,7 +422,7 @@
         </section>
 
         <!-- Right Preview Area -->
-        <section class="flex-1 bg-black/40 flex flex-col items-center p-6 relative overflow-y-auto custom-scrollbar">
+        <section id="previewRightSection" class="flex-1 bg-black/40 flex flex-col items-center p-6 relative overflow-y-auto custom-scrollbar">
             <!-- Preview Controls -->
             <div id="previewControls" class="absolute top-4 right-4 flex items-center gap-2 z-20 hidden">
                 <div class="bg-background-dark/90 backdrop-blur-md border border-white/10 rounded-lg flex p-1 shadow-xl">
@@ -757,6 +870,7 @@
     }
 
     function resetPreview() {
+        exitRegenLayout();
         const previewContent = document.getElementById('previewContent');
         previewContent.innerHTML = `
             <div class="text-center">
@@ -1130,6 +1244,7 @@
     });
 
     function displayInPreview(data) {
+        exitRegenLayout();
         const previewContent = document.getElementById('previewContent');
         const previewControls = document.getElementById('previewControls');
 
@@ -1363,6 +1478,37 @@
         });
     }
 
+    // ─── Regen layout helpers ────────────────────────────────────────────────
+    function enterRegenLayout() {
+        const section = document.getElementById('previewRightSection');
+        if (!section) return;
+        section.classList.add('regen-active');
+
+        // Inject source meta label next to thumbnail
+        const previewContent = document.getElementById('previewContent');
+        if (previewContent && !previewContent.querySelector('.regen-source-meta')) {
+            const meta = document.createElement('div');
+            meta.className = 'regen-source-meta';
+            meta.innerHTML = `
+                <span class="text-[9px] font-bold text-primary/60 uppercase tracking-widest">Source</span>
+                <span class="text-[10px] text-slate-500 regen-meta-status">Generating variations…</span>
+            `;
+            previewContent.appendChild(meta);
+        }
+    }
+
+    function updateRegenLayoutStatus(text) {
+        const el = document.querySelector('.regen-meta-status');
+        if (el) el.textContent = text;
+    }
+
+    function exitRegenLayout() {
+        const section = document.getElementById('previewRightSection');
+        if (!section) return;
+        section.classList.remove('regen-active');
+        document.querySelectorAll('.regen-source-meta').forEach(el => el.remove());
+    }
+
     // ─── Regenerate Offcanvas ────────────────────────────────────────────────
     let selectedRegenCount = 1;
 
@@ -1459,6 +1605,9 @@
             document.getElementById('regenStatus').scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
         });
 
+        // Shift layout: source image → thumbnail, variations fill the stage
+        enterRegenLayout();
+
         // Also show skeleton in the main preview results area immediately
         showRegenSkeletons(n);
 
@@ -1501,6 +1650,7 @@
 
             // Replace skeletons with real images, then close
             displayRegeneratedImages(data);
+            updateRegenLayoutStatus(`${n} variation${n > 1 ? 's' : ''} ready`);
             setTimeout(() => closeRegenerateCanvas(), 1000);
 
         } catch (error) {
