@@ -10,7 +10,15 @@
       "Bash(composer require:*)",
       "Bash(wsl --list:*)",
       "Bash(docker --version:*)",
-      "Bash(where:*)"
+      "Bash(where:*)",
+      "Bash(docker compose up:*)",
+      "Bash(tasklist:*)",
+      "Bash(start \"\" \"C:/Program Files/Docker/Docker/Docker Desktop.exe\")",
+      "Bash(start:*)",
+      "Bash(docker info:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(docker compose:*)",
+      "Bash(curl:*)"
     ]
   }
 }

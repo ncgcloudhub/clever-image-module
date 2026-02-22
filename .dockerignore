@@ -1,0 +1,16 @@
+.git
+.gitignore
+.env
+.env.*
+node_modules
+vendor
+public/build
+public/hot
+storage/logs/*.log
+.idea
+.vscode
+.fleet
+docker-compose*.yml
+Dockerfile
+*.md
+*.sh

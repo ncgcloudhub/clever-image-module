@@ -53,7 +53,7 @@ class CommunityGalleryController extends Controller
                 ]);
 
                 $response = $http->get(
-                    rtrim($service['base_url'], '/') . '/api/gallery?' . $queryParams,
+                    rtrim($service['internal_url'], '/') . '/api/gallery?' . $queryParams,
                     [
                         'headers' => [
                             'Authorization' => 'Bearer ' . $accessToken,

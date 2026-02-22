@@ -42,7 +42,7 @@ class NanoVisualToolsController extends Controller
             $payload = Cache::remember('nano_visual_tools', now()->addMinutes(30), function () use ($accessToken, $service) {
                 $http = new Client(['timeout' => 30]);
 
-                $response = $http->get(rtrim($service['base_url'], '/') . '/api/nano-visual-tools', [
+                $response = $http->get(rtrim($service['internal_url'], '/') . '/api/nano-visual-tools', [
                     'headers' => [
                         'Authorization' => 'Bearer ' . $accessToken,
                         'Accept' => 'application/json',
@@ -147,7 +147,7 @@ class NanoVisualToolsController extends Controller
                 ];
             }
 
-            $response = $http->post(rtrim($service['base_url'], '/') . '/api/nano-visual-tools/run', [
+            $response = $http->post(rtrim($service['internal_url'], '/') . '/api/nano-visual-tools/run', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Accept' => 'application/json',
@@ -217,7 +217,7 @@ class NanoVisualToolsController extends Controller
                 'per_page' => $request->input('per_page', 12),
             ]);
 
-            $response = $http->get(rtrim($service['base_url'], '/') . '/api/nano-visual-tools/images?' . $queryParams, [
+            $response = $http->get(rtrim($service['internal_url'], '/') . '/api/nano-visual-tools/images?' . $queryParams, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Accept' => 'application/json',
@@ -278,7 +278,7 @@ class NanoVisualToolsController extends Controller
         ]);
 
         try {
-            $response = $http->post(rtrim($service['base_url'], '/') . '/api/nano-visual-tools/regenerate', [
+            $response = $http->post(rtrim($service['internal_url'], '/') . '/api/nano-visual-tools/regenerate', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Accept' => 'application/json',

@@ -45,7 +45,7 @@ class GalleryController extends Controller
             ]);
 
             $response = $http->get(
-                rtrim($service['base_url'], '/') . '/api/user/gallery?' . $queryParams,
+                rtrim($service['internal_url'], '/') . '/api/user/gallery?' . $queryParams,
                 [
                     'headers' => [
                         'Authorization' => 'Bearer ' . $accessToken,
