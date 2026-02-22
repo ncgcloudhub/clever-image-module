@@ -234,6 +234,20 @@
         </a>
     </div>
 
+    <!-- Search Bar -->
+    <div class="mb-6">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
+            <input type="text" id="community-search-input"
+                   placeholder="Search by prompt, creator, or model..."
+                   class="w-full glass rounded-xl py-3 pl-12 pr-12 text-white placeholder-slate-500 bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all">
+            <button id="community-search-clear" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+        </div>
+        <p id="community-search-results" class="hidden text-slate-400 text-sm mt-2"></p>
+    </div>
+
     <!-- Gallery Grid -->
     <div id="community-gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         @for ($i = 0; $i < 8; $i++)
@@ -378,10 +392,12 @@
 // ============================================================
 //  STATE
 // ============================================================
-let communityCurrentPage = 1;
-let communityLastPage    = 1;
-let communityImagesData  = [];
+let communityCurrentPage  = 1;
+let communityLastPage     = 1;
+let communityImagesData   = [];
+let communityAllImages    = [];
 let communityCurrentIndex = 0;
+let communitySearchTerm   = '';
 
 // ============================================================
 //  HELPERS
@@ -426,6 +442,7 @@ function communityRenderGallery(images) {
     }
 
     grid.classList.remove('hidden');
+    document.getElementById('community-gallery-empty').classList.add('hidden');
 
     images.forEach(function(image, index) {
         const card = document.createElement('div');
@@ -498,9 +515,47 @@ function communityRenderGallery(images) {
     });
 }
 
+// ============================================================
+//  SEARCH
+// ============================================================
+function communityApplySearch() {
+    var term       = communitySearchTerm.trim().toLowerCase();
+    var resultsEl  = document.getElementById('community-search-results');
+    var clearBtn   = document.getElementById('community-search-clear');
+
+    clearBtn.classList.toggle('hidden', term === '');
+
+    if (!term) {
+        resultsEl.classList.add('hidden');
+        communityRenderGallery(communityAllImages);
+        return;
+    }
+
+    var filtered = communityAllImages.filter(function(img) {
+        var prompt   = (img.prompt || '').toLowerCase();
+        var creator  = img.user ? ((img.user.name || '') + ' ' + (img.user.username || '')).toLowerCase() : '';
+        var model    = (img.model || '').toLowerCase();
+        var toolName = img.tool ? (img.tool.name || '').toLowerCase() : '';
+        return prompt.includes(term) || creator.includes(term) || model.includes(term) || toolName.includes(term);
+    });
+
+    resultsEl.textContent = filtered.length + ' result' + (filtered.length !== 1 ? 's' : '') + ' for "' + communitySearchTerm.trim() + '"';
+    resultsEl.classList.remove('hidden');
+    communityRenderGallery(filtered);
+}
+
 function loadCommunityGallery(page) {
     page = page || 1;
     if (page < 1 || page > communityLastPage) return;
+
+    // Reset search when changing pages
+    communitySearchTerm = '';
+    var searchInput = document.getElementById('community-search-input');
+    if (searchInput) searchInput.value = '';
+    var searchResults = document.getElementById('community-search-results');
+    if (searchResults) searchResults.classList.add('hidden');
+    var searchClear = document.getElementById('community-search-clear');
+    if (searchClear) searchClear.classList.add('hidden');
 
     communityShowSkeletons();
 
@@ -518,6 +573,7 @@ function loadCommunityGallery(page) {
 
         communityCurrentPage = data.meta.current_page;
         communityLastPage    = data.meta.last_page;
+        communityAllImages   = data.data;
         communityRenderGallery(data.data);
 
         if (data.meta.last_page > 1) {
@@ -742,6 +798,25 @@ communityModalUseInGeneratorBtn.addEventListener('click', function() {
 // ============================================================
 //  INIT
 // ============================================================
+(function() {
+    var searchInput = document.getElementById('community-search-input');
+    var searchClear = document.getElementById('community-search-clear');
+    var debounceTimer;
+
+    searchInput.addEventListener('input', function() {
+        communitySearchTerm = this.value;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(communityApplySearch, 250);
+    });
+
+    searchClear.addEventListener('click', function() {
+        searchInput.value = '';
+        communitySearchTerm = '';
+        communityApplySearch();
+        searchInput.focus();
+    });
+})();
+
 loadCommunityGallery(1);
 </script>
 @endpush
