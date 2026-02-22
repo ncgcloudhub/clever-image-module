@@ -82,10 +82,16 @@
 <a class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors" href="#">Pricing</a>
 </div>
 <div class="flex items-center gap-4">
+@auth
+<a href="{{ route('dashboard') }}" class="bg-primary text-background-dark text-xs font-black uppercase tracking-widest px-6 py-3 rounded shadow-[0_0_20px_rgba(0,212,255,0.4)] hover:shadow-[0_0_30px_rgba(0,212,255,0.6)] transition-all transform hover:scale-105">
+    Dashboard
+</a>
+@else
 <a href="{{ route('login.aisite') }}" class="hidden sm:block text-xs font-bold uppercase tracking-widest text-white hover:text-primary px-4 py-2 transition-colors">Login</a>
 <button class="bg-primary text-background-dark text-xs font-black uppercase tracking-widest px-6 py-3 rounded shadow-[0_0_20px_rgba(0,212,255,0.4)] hover:shadow-[0_0_30px_rgba(0,212,255,0.6)] transition-all transform hover:scale-105">
-                Get Started
-            </button>
+    Get Started
+</button>
+@endauth
 </div>
 </div>
 </nav>
