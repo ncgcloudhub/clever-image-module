@@ -392,12 +392,14 @@
 // ============================================================
 //  STATE
 // ============================================================
-let communityCurrentPage  = 1;
-let communityLastPage     = 1;
-let communityImagesData   = [];
-let communityAllImages    = [];
-let communityCurrentIndex = 0;
-let communitySearchTerm   = '';
+let communityCurrentPage    = 1;
+let communityLastPage       = 1;
+let communityImagesData     = [];
+let communityAllImages      = [];   // current browsed page
+let communityAllPagesCache  = null; // all pages combined, null = not fetched yet
+let communityAllPagesFetching = false;
+let communityCurrentIndex   = 0;
+let communitySearchTerm     = '';
 
 // ============================================================
 //  HELPERS
@@ -518,30 +520,90 @@ function communityRenderGallery(images) {
 // ============================================================
 //  SEARCH
 // ============================================================
-function communityApplySearch() {
-    var term       = communitySearchTerm.trim().toLowerCase();
-    var resultsEl  = document.getElementById('community-search-results');
-    var clearBtn   = document.getElementById('community-search-clear');
-
-    clearBtn.classList.toggle('hidden', term === '');
-
-    if (!term) {
-        resultsEl.classList.add('hidden');
-        communityRenderGallery(communityAllImages);
-        return;
-    }
-
-    var filtered = communityAllImages.filter(function(img) {
+function communityFilterImages(images, term) {
+    return images.filter(function(img) {
         var prompt   = (img.prompt || '').toLowerCase();
         var creator  = img.user ? ((img.user.name || '') + ' ' + (img.user.username || '')).toLowerCase() : '';
         var model    = (img.model || '').toLowerCase();
         var toolName = img.tool ? (img.tool.name || '').toLowerCase() : '';
         return prompt.includes(term) || creator.includes(term) || model.includes(term) || toolName.includes(term);
     });
+}
 
-    resultsEl.textContent = filtered.length + ' result' + (filtered.length !== 1 ? 's' : '') + ' for "' + communitySearchTerm.trim() + '"';
+function communityShowFilteredResults(filtered, term) {
+    var resultsEl = document.getElementById('community-search-results');
+    resultsEl.textContent = filtered.length + ' result' + (filtered.length !== 1 ? 's' : '') + ' for "' + term + '"';
     resultsEl.classList.remove('hidden');
+    document.getElementById('community-gallery-pagination').classList.add('hidden');
     communityRenderGallery(filtered);
+}
+
+function communityApplySearch() {
+    var term      = communitySearchTerm.trim().toLowerCase();
+    var resultsEl = document.getElementById('community-search-results');
+    var clearBtn  = document.getElementById('community-search-clear');
+
+    clearBtn.classList.toggle('hidden', term === '');
+
+    if (!term) {
+        resultsEl.classList.add('hidden');
+        communityRenderGallery(communityAllImages);
+        // Restore pagination visibility
+        if (communityLastPage > 1) {
+            document.getElementById('community-gallery-pagination').classList.remove('hidden');
+            document.getElementById('community-gallery-pagination').classList.add('flex');
+        }
+        return;
+    }
+
+    // If all pages already fetched, filter immediately
+    if (communityAllPagesCache !== null) {
+        communityShowFilteredResults(communityFilterImages(communityAllPagesCache, term), communitySearchTerm.trim());
+        return;
+    }
+
+    // Only one page total — no need to fetch more
+    if (communityLastPage <= 1) {
+        communityAllPagesCache = communityAllImages.slice();
+        communityShowFilteredResults(communityFilterImages(communityAllPagesCache, term), communitySearchTerm.trim());
+        return;
+    }
+
+    // Guard against duplicate fetch
+    if (communityAllPagesFetching) return;
+    communityAllPagesFetching = true;
+
+    resultsEl.textContent = 'Searching all pages…';
+    resultsEl.classList.remove('hidden');
+
+    // Fetch all pages in parallel (page 1 already in communityAllImages, re-fetch to keep it simple)
+    var promises = [];
+    for (var p = 1; p <= communityLastPage; p++) {
+        promises.push(
+            fetch('/api/community-gallery?page=' + p + '&per_page=20', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function(r) { return r.json(); })
+        );
+    }
+
+    Promise.all(promises).then(function(results) {
+        communityAllPagesCache = [];
+        results.forEach(function(data) {
+            if (data.success && data.data) {
+                communityAllPagesCache = communityAllPagesCache.concat(data.data);
+            }
+        });
+        communityAllPagesFetching = false;
+        // Only apply if the term is still the same (user may have typed more)
+        var currentTerm = communitySearchTerm.trim().toLowerCase();
+        if (currentTerm) {
+            communityShowFilteredResults(communityFilterImages(communityAllPagesCache, currentTerm), communitySearchTerm.trim());
+        }
+    }).catch(function() {
+        communityAllPagesFetching = false;
+        // Fallback: filter current page only
+        communityShowFilteredResults(communityFilterImages(communityAllImages, term), communitySearchTerm.trim());
+    });
 }
 
 function loadCommunityGallery(page) {
@@ -549,7 +611,9 @@ function loadCommunityGallery(page) {
     if (page < 1 || page > communityLastPage) return;
 
     // Reset search when changing pages
-    communitySearchTerm = '';
+    communitySearchTerm    = '';
+    communityAllPagesCache = null;
+    communityAllPagesFetching = false;
     var searchInput = document.getElementById('community-search-input');
     if (searchInput) searchInput.value = '';
     var searchResults = document.getElementById('community-search-results');
