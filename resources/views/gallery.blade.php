@@ -201,6 +201,20 @@
         </a>
     </div>
 
+    <!-- Search Bar -->
+    <div class="mb-6">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
+            <input type="text" id="gallery-search-input"
+                   placeholder="Search by prompt or model..."
+                   class="w-full glass rounded-xl py-3 pl-12 pr-12 text-white placeholder-slate-500 bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all">
+            <button id="gallery-search-clear" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-lg">close</span>
+            </button>
+        </div>
+        <p id="gallery-search-results" class="hidden text-slate-400 text-sm mt-2"></p>
+    </div>
+
     <!-- Gallery Grid -->
     <div id="gallery-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         @for ($i = 0; $i < 8; $i++)
@@ -334,10 +348,14 @@
 // ============================================================
 //  GALLERY DATA & STATE
 // ============================================================
-let currentPage = 1;
-let lastPage    = 1;
-let imagesData  = [];   // all images currently rendered in the grid
-let currentIndex = 0;
+let currentPage       = 1;
+let lastPage          = 1;
+let imagesData        = [];
+let allImages         = [];   // current browsed page
+let allPagesCache     = null; // all pages combined, null = not fetched yet
+let allPagesFetching  = false;
+let currentIndex      = 0;
+let searchTerm        = '';
 
 // ============================================================
 //  GALLERY LOADING
@@ -374,6 +392,7 @@ function renderGallery(images) {
     }
 
     grid.classList.remove('hidden');
+    document.getElementById('gallery-empty').classList.add('hidden');
 
     images.forEach(function(image, index) {
         const card = document.createElement('div');
@@ -419,9 +438,100 @@ function renderGallery(images) {
     });
 }
 
+// ============================================================
+//  SEARCH
+// ============================================================
+function filterImages(images, term) {
+    return images.filter(function(img) {
+        var prompt   = (img.prompt || '').toLowerCase();
+        var model    = (img.model || '').toLowerCase();
+        var toolName = img.tool ? (img.tool.name || '').toLowerCase() : '';
+        return prompt.includes(term) || model.includes(term) || toolName.includes(term);
+    });
+}
+
+function showFilteredResults(filtered, term) {
+    var resultsEl = document.getElementById('gallery-search-results');
+    resultsEl.textContent = filtered.length + ' result' + (filtered.length !== 1 ? 's' : '') + ' for "' + term + '"';
+    resultsEl.classList.remove('hidden');
+    document.getElementById('gallery-pagination').classList.add('hidden');
+    renderGallery(filtered);
+}
+
+function applySearch() {
+    var term     = searchTerm.trim().toLowerCase();
+    var resultsEl = document.getElementById('gallery-search-results');
+    var clearBtn  = document.getElementById('gallery-search-clear');
+
+    clearBtn.classList.toggle('hidden', term === '');
+
+    if (!term) {
+        resultsEl.classList.add('hidden');
+        renderGallery(allImages);
+        if (lastPage > 1) {
+            document.getElementById('gallery-pagination').classList.remove('hidden');
+            document.getElementById('gallery-pagination').classList.add('flex');
+        }
+        return;
+    }
+
+    if (allPagesCache !== null) {
+        showFilteredResults(filterImages(allPagesCache, term), searchTerm.trim());
+        return;
+    }
+
+    if (lastPage <= 1) {
+        allPagesCache = allImages.slice();
+        showFilteredResults(filterImages(allPagesCache, term), searchTerm.trim());
+        return;
+    }
+
+    if (allPagesFetching) return;
+    allPagesFetching = true;
+
+    resultsEl.textContent = 'Searching all pages…';
+    resultsEl.classList.remove('hidden');
+
+    var promises = [];
+    for (var p = 1; p <= lastPage; p++) {
+        promises.push(
+            fetch('/api/gallery?page=' + p + '&per_page=20', {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            }).then(function(r) { return r.json(); })
+        );
+    }
+
+    Promise.all(promises).then(function(results) {
+        allPagesCache = [];
+        results.forEach(function(data) {
+            if (data.success && data.data) {
+                allPagesCache = allPagesCache.concat(data.data);
+            }
+        });
+        allPagesFetching = false;
+        var currentTerm = searchTerm.trim().toLowerCase();
+        if (currentTerm) {
+            showFilteredResults(filterImages(allPagesCache, currentTerm), searchTerm.trim());
+        }
+    }).catch(function() {
+        allPagesFetching = false;
+        showFilteredResults(filterImages(allImages, term), searchTerm.trim());
+    });
+}
+
 function loadGallery(page) {
     page = page || 1;
     if (page < 1 || page > lastPage) return;
+
+    searchTerm   = '';
+    allPagesCache = null;
+    allPagesFetching = false;
+    var searchInput = document.getElementById('gallery-search-input');
+    if (searchInput) searchInput.value = '';
+    var searchResults = document.getElementById('gallery-search-results');
+    if (searchResults) searchResults.classList.add('hidden');
+    var searchClear = document.getElementById('gallery-search-clear');
+    if (searchClear) searchClear.classList.add('hidden');
 
     showSkeletons();
 
@@ -439,6 +549,7 @@ function loadGallery(page) {
 
         currentPage = data.meta.current_page;
         lastPage    = data.meta.last_page;
+        allImages   = data.data;
         renderGallery(data.data);
 
         if (data.meta.last_page > 1) {
@@ -651,6 +762,25 @@ modalUseInGeneratorBtn.addEventListener('click', function() {
 // ============================================================
 //  INIT
 // ============================================================
+(function() {
+    var searchInput = document.getElementById('gallery-search-input');
+    var searchClear = document.getElementById('gallery-search-clear');
+    var debounceTimer;
+
+    searchInput.addEventListener('input', function() {
+        searchTerm = this.value;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(applySearch, 250);
+    });
+
+    searchClear.addEventListener('click', function() {
+        searchInput.value = '';
+        searchTerm = '';
+        applySearch();
+        searchInput.focus();
+    });
+})();
+
 loadGallery(1);
 </script>
 @endpush
