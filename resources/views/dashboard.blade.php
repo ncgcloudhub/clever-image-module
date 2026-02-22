@@ -202,51 +202,21 @@
                             <span class="material-symbols-outlined text-sm">arrow_forward</span>
 </a>
 </div>
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-<!-- Card 1 -->
-<div class="group relative rounded-2xl overflow-hidden glass aspect-square border-none">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Abstract vibrant nebula AI generation" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD31e_R7BnXWEkjhAuA8SqdCRObvdLA1FmICuCO0tO7WLZqYkOKbM2yvN5A2ZYVcPsroM6ff5pB50Tx3_yqhLoorpOHERhG8JSYeSBhgRsW4LNnEIduR-ElJm-C7HP9ugGil_OLbmurpFONcAtcMWyXkmuoFjijW7u6pMzaRZ-UEvk1Yj1KfV5tEGgxGXlOUxXehXR7FwZ6tAvEYlaifRGJN7QqNTcsE_lewc_vPkCDtQ35Y9Nz3POl7aCXAJAWmvHnuN6QFPQFltw"/>
-<div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
-<p class="text-white text-sm font-bold mb-3 truncate">Cosmic Nebula Abstract</p>
-<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-base">high_quality</span>
-                                    Enhance
-                                </button>
+
+<!-- Skeleton loaders -->
+<div id="recentSkeletons" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    @for ($i = 0; $i < 4; $i++)
+    <div class="rounded-2xl overflow-hidden glass aspect-square border-none animate-pulse bg-white/5"></div>
+    @endfor
 </div>
-</div>
-<!-- Card 2 -->
-<div class="group relative rounded-2xl overflow-hidden glass aspect-square border-none">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Cyberpunk street samurai aesthetic AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP6VLBnXkg0mh2lLFTuasX0ATy9t1Sdo0PrGfLs60ad7fuGIWFEWzeKfBMeXHSZnFK8vbs6QohZvEoVVZMV3Xw-KgeAJULgEEEKDlPGOO6ZzDtKcDrwHIlUmORY64UZXM28UnfVAs0_GjnplPl8tL9G2Tlk96aapyj1TbuLt_j4RAZwlP99eZC2nb5jsh83lw_REVb7GsJHChwcmtlmYiVHq_AoJKL94FPwhVv-PHY14JKaGg1pFC-ea8PDOA4SgUP7aWvQOVPsmA"/>
-<div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
-<p class="text-white text-sm font-bold mb-3 truncate">Neon Samurai 2077</p>
-<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-base">high_quality</span>
-                                    Enhance
-                                </button>
-</div>
-</div>
-<!-- Card 3 -->
-<div class="group relative rounded-2xl overflow-hidden glass aspect-square border-none">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Ethereal landscape floating islands AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgeLLAfm1EJ7Hl7XJZOWHB6jSk6EQoA0stLjg49nWXdE2z_hZrfSZPPOARt9UrkdcS9crwy0l8TdSXkNGs2zvQ-d25pdJhy5Py_QOiMV3CDqtjKMgnjpryJZXa7guETFV7oM7KY9W2Tx1U2qFpEq9PY7nway3C1lQi3_JtrjMlCaO1kcuwfJgC4N2c5831SQNxPFkgyIkp-a7T6kYdawk36vOi1sXm45V7HR3MVedj493aEts4LTtllrlxb3pFgx140lGXG0937M8"/>
-<div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
-<p class="text-white text-sm font-bold mb-3 truncate">Floating Islands Ethereal</p>
-<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-base">high_quality</span>
-                                    Enhance
-                                </button>
-</div>
-</div>
-<!-- Card 4 -->
-<div class="group relative rounded-2xl overflow-hidden glass aspect-square border-none">
-<img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Futuristic glass architecture minimal AI art" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcd5t05N1BxIWSMYg_UNmi1KHVdPlL5JGZI-aMBURvx1xsospAoqnHYzBO2i42f7mupza6FXIebPB_I-HWhY4geCvvsrHWaDDvyrHbjRoC2RQBU3nJBNOI0ZvHPI028dWNgqS-trchE-xDdTNGPvrW5hAugv4zqv8T664M7pwiSlR6zAy86mG7Kv9CSL6Ynt2Yzd-2wqFr_MwEaRPyG9kRxQ54YNZi8AiayJ-gq2v8ipAoxlDbRIe80Q4SeC01Q9r79_z8LFOb9bo"/>
-<div class="absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end">
-<p class="text-white text-sm font-bold mb-3 truncate">Minimalist Architecture</p>
-<button class="w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2">
-<span class="material-symbols-outlined text-base">high_quality</span>
-                                    Enhance
-                                </button>
-</div>
-</div>
+
+<!-- Dynamic grid -->
+<div id="recentGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 hidden"></div>
+
+<!-- Empty state -->
+<div id="recentEmpty" class="hidden flex flex-col items-center justify-center py-16 text-center">
+    <span class="material-symbols-outlined text-5xl text-slate-600 mb-3">image_not_supported</span>
+    <p class="text-slate-400 text-sm">No images yet. Generate your first one above!</p>
 </div>
 </section>
 @endsection
@@ -416,5 +386,59 @@ function resetQuickStart() {
     document.getElementById('quickPrompt').focus();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// ── Recent Generations ────────────────────────────────────────
+(function loadRecentGenerations() {
+    fetch('/api/gallery?per_page=4&page=1', {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(function(res) { return res.json(); })
+    .then(function(data) {
+        document.getElementById('recentSkeletons').classList.add('hidden');
+
+        if (!data.success || !data.data || data.data.length === 0) {
+            document.getElementById('recentEmpty').classList.remove('hidden');
+            document.getElementById('recentEmpty').classList.add('flex');
+            return;
+        }
+
+        var grid = document.getElementById('recentGrid');
+        grid.classList.remove('hidden');
+
+        data.data.forEach(function(image) {
+            var card = document.createElement('div');
+            card.className = 'group relative rounded-2xl overflow-hidden glass aspect-square border-none';
+
+            var img = document.createElement('img');
+            img.className = 'w-full h-full object-cover group-hover:scale-110 transition-transform duration-500';
+            img.src    = image.image_url;
+            img.alt    = image.prompt || 'Generated image';
+            img.loading = 'lazy';
+
+            var overlay = document.createElement('div');
+            overlay.className = 'absolute inset-0 bg-gradient-to-t from-background-dark/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-5 flex flex-col justify-end';
+
+            var promptEl = document.createElement('p');
+            promptEl.className = 'text-white text-sm font-bold mb-3 truncate';
+            promptEl.textContent = image.prompt || 'Generated image';
+
+            var btn = document.createElement('a');
+            btn.href = '{{ route('gallery') }}';
+            btn.className = 'w-full py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2';
+            btn.innerHTML = '<span class="material-symbols-outlined text-base">high_quality</span> View in Gallery';
+
+            overlay.appendChild(promptEl);
+            overlay.appendChild(btn);
+            card.appendChild(img);
+            card.appendChild(overlay);
+            grid.appendChild(card);
+        });
+    })
+    .catch(function() {
+        document.getElementById('recentSkeletons').classList.add('hidden');
+        document.getElementById('recentEmpty').classList.remove('hidden');
+        document.getElementById('recentEmpty').classList.add('flex');
+    });
+})();
 </script>
 @endpush
