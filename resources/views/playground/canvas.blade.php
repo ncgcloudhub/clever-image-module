@@ -388,7 +388,6 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
-        max-width: 440px;
     }
     /* Remove individual positioning — parent handles it */
     #canvasToolbarGroup #canvasToolbar {
@@ -396,11 +395,14 @@
         top: auto; left: auto; z-index: auto;
     }
 
-    /* ── Canvas quick action chips ─────────────────────────── */
+    /* ── Canvas quick action chips (above image, left-aligned) ─ */
     #canvasQuickActions {
         display: none;
         flex-wrap: wrap;
         gap: 0.375rem;
+        max-width: 100%;
+        margin-bottom: 0.5rem;
+        align-self: flex-start;
     }
     .canvas-quick-chip {
         font-size: 0.6875rem;
@@ -449,9 +451,6 @@
                 </button>
             </div>
 
-            {{-- Quick action chips — injected by JS after each generation --}}
-            <div id="canvasQuickActions"></div>
-
         </div>
 
         {{-- Top-right info --}}
@@ -477,7 +476,10 @@
 
         {{-- Main canvas image container --}}
         <div id="canvasImageContainer" style="display:none;">
-            <div class="relative">
+            <div class="flex flex-col items-start">
+                {{-- Quick action chips — above the image, left-aligned --}}
+                <div id="canvasQuickActions"></div>
+                <div class="relative">
                 <img id="canvasMainImage" src="" alt="Generated">
                 <div id="canvasImageActions">
                     <button onclick="downloadCanvas()"
@@ -493,8 +495,9 @@
                         <span class="material-symbols-outlined text-sm">open_in_full</span> Expand
                     </button>
                 </div>
-            </div>
-        </div>
+                </div>{{-- /.relative --}}
+            </div>{{-- /.flex.flex-col --}}
+        </div>{{-- /#canvasImageContainer --}}
 
     </div>
 
@@ -744,11 +747,11 @@ async function loadSession(sessionId) {
 
         renderMiniMessages();
         renderFlowStrip();
-        renderQuickActions({});
 
         // Show last generated image on canvas (or clear if none)
         const lastImg = [...S.messages].reverse().find(m => m.imageUrl);
         renderCanvasImage(lastImg ? lastImg.imageUrl : null);
+        renderQuickActions(lastImg ? (lastImg.quickActions || {}) : {});
 
         document.getElementById('genCount').textContent     = `${imgs.length} generation${imgs.length !== 1 ? 's' : ''}`;
         document.getElementById('sessionLabel').textContent = truncate(S.messages.find(m => m.role === 'user')?.prompt || 'Session', 20);
@@ -824,6 +827,7 @@ async function sendMiniChat() {
                 role:         'ai',
                 imageUrl:     data.image_url    || null,
                 textResponse: data.text_response || null,
+                quickActions: data.quick_actions || {},
                 prompt,
                 ts:           Date.now(),
             };
@@ -1007,6 +1011,10 @@ function setCanvasFromFlow(idx, url) {
     S.activeFlowIdx = idx;
     renderCanvasImage(url);
     updateFlowActiveState();
+    // Restore quick actions for the selected image
+    const imgs = S.messages.filter(m => m.imageUrl);
+    const msg  = imgs[idx];
+    renderQuickActions(msg ? (msg.quickActions || {}) : {});
 }
 
 function updateFlowActiveState() {
