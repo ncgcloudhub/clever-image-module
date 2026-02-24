@@ -40,7 +40,7 @@ cp .env.example .env
 
 Open `.env` and fill in these values:
 
-| Variable                    | What to set                                   |
+| Variables                    | What to set                                   |
 |-----------------------------|-----------------------------------------------|
 | `APP_KEY`                   | Leave blank — generated in step 4             |
 | `DB_PASSWORD`               | Any password (must match across restarts)     |
