@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class NanoVisualToolsController extends Controller
@@ -17,7 +18,8 @@ class NanoVisualToolsController extends Controller
     }
 
     /**
-     * Get list of available visual tools from API
+     * Get list of available visual tools from API.
+     * Results are cached in Redis for 30 minutes to avoid redundant API calls.
      */
     public function getTools(Request $request)
     {
@@ -32,26 +34,29 @@ class NanoVisualToolsController extends Controller
 
         $service = config('services.aisite');
 
-        $http = new Client([
-            'timeout' => 30,
-        ]);
-
         try {
-            $response = $http->get(rtrim($service['base_url'], '/') . '/api/nano-visual-tools', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $accessToken,
-                    'Accept' => 'application/json',
-                ],
-            ]);
+            // Cache the tools list for 30 minutes. The list is the same for all
+            // authenticated users, so a shared key is appropriate. If the API
+            // call fails or returns an error we throw, which prevents caching
+            // the bad result.
+            $payload = Cache::remember('nano_visual_tools', now()->addMinutes(30), function () use ($accessToken, $service) {
+                $http = new Client(['timeout' => 30]);
 
-            $payload = json_decode((string) $response->getBody(), true);
+                $response = $http->get(rtrim($service['internal_url'], '/') . '/api/nano-visual-tools', [
+                    'headers' => [
+                        'Authorization' => 'Bearer ' . $accessToken,
+                        'Accept' => 'application/json',
+                    ],
+                ]);
 
-            if ($response->getStatusCode() !== 200 || empty($payload['success'])) {
-                return response()->json([
-                    'success' => false,
-                    'error' => $payload['error'] ?? 'Failed to fetch tools from provider',
-                ], 500);
-            }
+                $data = json_decode((string) $response->getBody(), true);
+
+                if ($response->getStatusCode() !== 200 || empty($data['success'])) {
+                    throw new \RuntimeException($data['error'] ?? 'Failed to fetch tools from provider');
+                }
+
+                return $data;
+            });
 
             return response()->json([
                 'success' => true,
@@ -142,7 +147,7 @@ class NanoVisualToolsController extends Controller
                 ];
             }
 
-            $response = $http->post(rtrim($service['base_url'], '/') . '/api/nano-visual-tools/run', [
+            $response = $http->post(rtrim($service['internal_url'], '/') . '/api/nano-visual-tools/run', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Accept' => 'application/json',
@@ -212,7 +217,7 @@ class NanoVisualToolsController extends Controller
                 'per_page' => $request->input('per_page', 12),
             ]);
 
-            $response = $http->get(rtrim($service['base_url'], '/') . '/api/nano-visual-tools/images?' . $queryParams, [
+            $response = $http->get(rtrim($service['internal_url'], '/') . '/api/nano-visual-tools/images?' . $queryParams, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Accept' => 'application/json',
@@ -273,7 +278,7 @@ class NanoVisualToolsController extends Controller
         ]);
 
         try {
-            $response = $http->post(rtrim($service['base_url'], '/') . '/api/nano-visual-tools/regenerate', [
+            $response = $http->post(rtrim($service['internal_url'], '/') . '/api/nano-visual-tools/regenerate', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Accept' => 'application/json',

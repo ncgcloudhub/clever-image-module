@@ -30,7 +30,7 @@ class DashboardImageController extends Controller
         ]);
 
         try {
-            $response = $http->post(rtrim($service['base_url'], '/') . '/api/oauth/nano-image', [
+            $response = $http->post(rtrim($service['internal_url'], '/') . '/api/oauth/nano-image', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
                     'Accept'        => 'application/json',
@@ -66,6 +66,7 @@ class DashboardImageController extends Controller
         }
     }
 }
+
 
 
 

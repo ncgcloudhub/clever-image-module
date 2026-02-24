@@ -52,7 +52,7 @@ class OAuthClientController extends Controller
         ]);
 
         // Exchange code for token (provider exposes this under /api/oauth/token)
-        $tokenResponse = $http->post(rtrim($service['base_url'], '/') . '/api/oauth/token', [
+        $tokenResponse = $http->post(rtrim($service['internal_url'], '/') . '/api/oauth/token', [
             'form_params' => [
                 'grant_type'    => 'authorization_code',
                 'client_id'     => $service['client_id'],
@@ -70,7 +70,7 @@ class OAuthClientController extends Controller
         }
 
         // Get user info from AISITE
-        $userResponse = $http->get(rtrim($service['base_url'], '/') . '/api/user', [
+        $userResponse = $http->get(rtrim($service['internal_url'], '/') . '/api/user', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $accessToken,
                 'Accept'        => 'application/json',

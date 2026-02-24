@@ -27,10 +27,11 @@ return [
 
     // OAuth server (your existing AISITE app)
     'aisite' => [
-        'base_url'      => env('AISITE_OAUTH_BASE_URL'),      // e.g. https://your-aisite-domain.com
+        'base_url'      => env('AISITE_OAUTH_BASE_URL'),                                          // browser-facing URL
+        'internal_url'  => env('AISITE_OAUTH_INTERNAL_URL', env('AISITE_OAUTH_BASE_URL')),        // server-to-server URL (use host.docker.internal in Docker)
         'client_id'     => env('AISITE_OAUTH_CLIENT_ID'),
         'client_secret' => env('AISITE_OAUTH_CLIENT_SECRET'),
-        'redirect'      => env('AISITE_OAUTH_REDIRECT_URI'),  // e.g. https://third-party-app.test/oauth/callback
+        'redirect'      => env('AISITE_OAUTH_REDIRECT_URI'),
     ],
 
     'ses' => [

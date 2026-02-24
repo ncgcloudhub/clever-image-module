@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan tinker:*)",
+      "Bash(php artisan db:seed:*)",
+      "Bash(php artisan config:clear:*)",
+      "Bash(php artisan:*)",
+      "Bash(grep:*)",
+      "Bash(dir:*)",
+      "Bash(composer require:*)",
+      "Bash(wsl --list:*)",
+      "Bash(docker --version:*)",
+      "Bash(where:*)",
+      "Bash(docker compose up:*)",
+      "Bash(tasklist:*)",
+      "Bash(start \"\" \"C:/Program Files/Docker/Docker/Docker Desktop.exe\")",
+      "Bash(start:*)",
+      "Bash(docker info:*)",
+      "Bash(docker compose exec:*)",
+      "Bash(docker compose:*)",
+      "Bash(curl:*)"
+    ]
+  }
+}
