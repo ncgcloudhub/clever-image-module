@@ -1,4 +1,4 @@
-FROM php:8.2-fpm-alpine
+FROM php:8.2-apache
 
 # Install system dependencies
 RUN apk add --no-cache \
@@ -23,7 +23,7 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 # Copy composer files first for better layer caching
 COPY composer.json composer.lock* ./
@@ -48,7 +48,9 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions \
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 9000
+EXPOSE 80
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["php-fpm"]
+CMD ["apache2-foreground"]
+
+RUN a2enmod rewrite
