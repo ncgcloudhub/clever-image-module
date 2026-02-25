@@ -57,7 +57,7 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions \
     && chmod -R 775 storage bootstrap/cache
 
 # Nginx + supervisor config (single container)
-RUN mkdir -p /etc/nginx/http.d
+RUN mkdir -p /etc/nginx/http.d /run/nginx /var/log/nginx /var/log/supervisor
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 COPY docker/default.prod.conf /etc/nginx/http.d/default.conf
 
