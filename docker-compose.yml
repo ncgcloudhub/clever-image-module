@@ -2,14 +2,18 @@ version: '3.8'
 
 services:
 
-  # ─── Laravel Application (PHP-FPM) ────────────────────────────────────────
+  # ─── Laravel Application (nginx + PHP-FPM in one container) ───────────────
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        COMPOSER_DEV: "1"
     container_name: oauth_visual_app
     restart: unless-stopped
     working_dir: /var/www
+    ports:
+      - "${APP_PORT:-8001}:8000"
     volumes:
       # Mount source code — PHP/Blade/route/config changes are instant
       - .:/var/www
@@ -22,22 +26,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    networks:
-      - app_network
-
-  # ─── Nginx Web Server ─────────────────────────────────────────────────────
-  nginx:
-    image: nginx:alpine
-    container_name: oauth_visual_nginx
-    restart: unless-stopped
-    ports:
-      - "${APP_PORT:-8001}:80"
-    volumes:
-      - .:/var/www
-      - build_data:/var/www/public/build
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-    depends_on:
-      - app
     networks:
       - app_network
 
