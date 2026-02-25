@@ -74,7 +74,7 @@
 <div class="size-9 bg-primary/20 border border-primary/40 rounded flex items-center justify-center text-primary shadow-[0_0_10px_rgba(0,212,255,0.3)]">
 <span class="material-symbols-outlined text-2xl">auto_awesome</span>
 </div>
-<h1 class="text-xl font-extrabold tracking-tight text-white italic">Clever Creator <span class="text-primary not-italic">AI</span></h1>
+<h1 class="text-xl font-extrabold tracking-tight text-white italic">Clever Creator <span class="text-primary not-italic">AI (Dev)</span></h1>
 </div>
 <div class="hidden md:flex items-center gap-10">
 <a class="text-xs font-bold uppercase tracking-widest text-slate-400 hover:text-primary transition-colors" href="#features">Features</a>
