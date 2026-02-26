@@ -66,10 +66,10 @@
         <span class="material-symbols-outlined flex-shrink-0">settings</span>
         <span class="sidebar-label text-sm font-medium whitespace-nowrap">Settings</span>
     </div>
-    <div title="Help Center" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
+    <a href="https://clevercreator.ai/contact-us" target="_blank" title="Help Center" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
         <span class="material-symbols-outlined flex-shrink-0">help</span>
         <span class="sidebar-label text-sm font-medium whitespace-nowrap">Help Center</span>
-    </div>
+    </a>
 
 </nav>
 
@@ -79,40 +79,34 @@
         @if($userData)
         @php
             $creditsLeft = $userData['credits_left'] ?? 0;
-            $tokensLeft = $userData['tokens_left'] ?? 0;
-            $maxCredits = 500;
-            $maxTokens = 10000;
-            $creditsPercentage = $maxCredits > 0 ? round(($creditsLeft / $maxCredits) * 100) : 0;
-            $tokensPercentage = $maxTokens > 0 ? round(($tokensLeft / $maxTokens) * 100) : 0;
+            $tokensLeft  = $userData['tokens_left']  ?? 0;
         @endphp
-        <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-medium text-slate-300">Token Usage</span>
-            <span class="text-xs font-bold text-white" id="sidebar-token-pct">{{ $tokensPercentage }}%</span>
+        <div class="flex justify-between items-center">
+            <span class="text-xs font-medium text-slate-300">Tokens</span>
+            <span class="text-xs font-bold text-white" id="sidebar-tokens-left">{{ number_format($tokensLeft) }}</span>
         </div>
-        <div class="w-full bg-white/10 rounded-full h-1.5 mb-2 overflow-hidden">
-            <div class="bg-primary h-full rounded-full" id="sidebar-token-bar" style="width: {{ $tokensPercentage }}%"></div>
-        </div>
-        <p class="text-[10px] text-slate-400"><span id="sidebar-tokens-left">{{ number_format($tokensLeft) }}</span>/{{ number_format($maxTokens) }} Tokens</p>
         <div class="mt-3 pt-3 border-t border-white/10">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-medium text-slate-300">Credits</span>
-                <span class="text-xs font-bold text-white" id="sidebar-credits-left">{{ $creditsLeft }}</span>
+                <span class="text-xs font-bold text-white" id="sidebar-credits-left">{{ number_format($creditsLeft) }}</span>
             </div>
         </div>
         @else
-        <div class="flex justify-between items-center mb-2">
-            <span class="text-xs font-medium text-slate-300">Token Usage</span>
+        <div class="flex justify-between items-center">
+            <span class="text-xs font-medium text-slate-300">Tokens</span>
             <span class="text-xs font-bold text-white">--</span>
         </div>
-        <div class="w-full bg-white/10 rounded-full h-1.5 mb-2 overflow-hidden">
-            <div class="bg-primary h-full rounded-full" style="width: 0%"></div>
+        <div class="mt-3 pt-3 border-t border-white/10">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-medium text-slate-300">Credits</span>
+                <span class="text-xs font-bold text-white">--</span>
+            </div>
         </div>
-        <p class="text-[10px] text-slate-400">Loading...</p>
         @endif
-        <button class="w-full mt-4 py-2 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-bold transition-all flex items-center justify-center gap-2">
+        <a href="https://clevercreator.ai/pricing" target="_blank" class="w-full mt-4 py-2 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-xs font-bold transition-all flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-sm">add_circle</span>
             Refill Credits
-        </button>
+        </a>
     </div>
 </div>
 

@@ -16,7 +16,7 @@
     <span id="topbar-credits-left">{{ $creditsLeft }}</span>
     <span class="text-slate-400 mx-0.5">/</span>
     <span id="topbar-credits-max"> {{ $tokensLeft }}</span>
-    <span class="text-primary tracking-tighter ml-1">Crdits/Tokens</span>
+    <span class="text-primary tracking-tighter ml-1">Credits/Tokens</span>
 </p>
 </div>
 <div class="h-8 w-px bg-white/10"></div>
@@ -25,12 +25,7 @@
 </button>
 </div>
 <div class="flex items-center gap-3">
-<div class="relative">
-<button class="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-colors">
-<span class="material-symbols-outlined">notifications</span>
-</button>
-<span class="absolute top-2 right-2 size-2 bg-secondary rounded-full border-2 border-background-dark"></span>
-</div>
+
 <div class="relative flex items-center gap-3 pl-4 border-l border-white/10">
 <button id="userMenuButton" class="flex items-center gap-3 hover:bg-white/5 rounded-xl p-2 -m-2 transition-colors cursor-pointer">
 <div class="text-right">
