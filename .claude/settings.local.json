@@ -18,7 +18,15 @@
       "Bash(docker info:*)",
       "Bash(docker compose exec:*)",
       "Bash(docker compose:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(netstat -ano)",
+      "Bash(findstr \":8001\")",
+      "Bash(cmd /c \"tasklist /FI \"\"PID eq 12040\"\" /FO LIST && tasklist /FI \"\"PID eq 31624\"\" /FO LIST\")",
+      "Bash(cmd /c tasklist)",
+      "Bash(cmd /c \"wmic process where ProcessId=12040 get Name,ProcessId && wmic process where ProcessId=31624 get Name,ProcessId\")",
+      "Bash(docker ps -a --format \"table {{.Names}}\\\\t{{.Ports}}\\\\t{{.Status}}\")",
+      "Bash(docker stop oauth_visual_nginx)",
+      "Bash(docker rm oauth_visual_nginx)"
     ]
   }
 }
