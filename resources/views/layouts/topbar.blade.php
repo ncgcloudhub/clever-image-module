@@ -4,35 +4,26 @@
 
 </div>
 <div class="flex items-center gap-6">
-@if($userData)
 @php
     $creditsLeft = $userData['credits_left'] ?? 0;
-    $tokensLeft = $userData['tokens_left'] ?? 0;
-    $maxCredits = 500;
-    $planName = $userData['plan_name'] ?? 'Free';
+    $tokensLeft  = $userData['tokens_left'] ?? 0;
+    $planName    = $userData['plan_name'] ?? 'Free';
 @endphp
 <div class="hidden lg:flex items-center gap-4 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
 <div class="text-right">
 <p class="text-[10px] font-bold text-slate-400 uppercase leading-none">Balance</p>
-<p class="text-sm font-bold text-white">{{ $creditsLeft }} / {{ $maxCredits }} <span class="text-primary tracking-tighter ml-1">Credits</span></p>
+<p class="text-sm font-bold text-white">
+    <span id="topbar-credits-left">{{ $creditsLeft }}</span>
+    <span class="text-slate-400 mx-0.5">/</span>
+    <span id="topbar-credits-max">500</span>
+    <span class="text-primary tracking-tighter ml-1">Credits</span>
+</p>
 </div>
 <div class="h-8 w-px bg-white/10"></div>
-<button class="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-slate-300" onclick="location.reload()">
-<span class="material-symbols-outlined">refresh</span>
+<button id="balanceRefreshBtn" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-slate-300" title="Refresh balance">
+<span class="material-symbols-outlined" id="balanceRefreshIcon">refresh</span>
 </button>
 </div>
-@else
-<div class="hidden lg:flex items-center gap-4 px-4 py-2 rounded-xl bg-white/5 border border-white/10">
-<div class="text-right">
-<p class="text-[10px] font-bold text-slate-400 uppercase leading-none">Balance</p>
-<p class="text-sm font-bold text-white">-- / -- <span class="text-primary tracking-tighter ml-1">Credits</span></p>
-</div>
-<div class="h-8 w-px bg-white/10"></div>
-<button class="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-slate-300" onclick="location.reload()">
-<span class="material-symbols-outlined">refresh</span>
-</button>
-</div>
-@endif
 <div class="flex items-center gap-3">
 <div class="relative">
 <button class="p-2 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:text-white transition-colors">
@@ -44,18 +35,16 @@
 <button id="userMenuButton" class="flex items-center gap-3 hover:bg-white/5 rounded-xl p-2 -m-2 transition-colors cursor-pointer">
 <div class="text-right">
 <p class="text-sm font-bold text-white">{{ auth()->user()->name ?? ($userData['name'] ?? 'User') }}</p>
-@if($userData)
-<p class="text-[10px] text-primary font-medium">{{ $userData['plan_name'] ?? 'Free' }} Plan</p>
-@else
-<p class="text-[10px] text-primary font-medium">Free Plan</p>
-@endif
+<p class="text-[10px] text-primary font-medium">{{ $planName }} Plan</p>
 </div>
 <div class="size-10 rounded-xl bg-gradient-to-tr from-primary to-secondary p-0.5">
 <div class="w-full h-full rounded-[10px] overflow-hidden bg-background-dark">
 @if($userData && !empty($userData['avatar']))
-<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="{{ $userData['avatar'] }}"/>
+<img class="w-full h-full object-cover" alt="User profile avatar" src="{{ $userData['avatar'] }}"/>
 @else
-<img class="w-full h-full object-cover" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMYzj3P7sWCBwO4pRDXDT3IhXMdYYTeiRmevYL7qO7tN_hfdFS3c_3dvWIJAzR3V0UzS6BzIBgrFsXC-TU1keMFMor-GZV_9L6Qg3mwbK0uFvjixm51mZR9ENlo4DKK4mMw9Dma_IsDb6y49hyDyuzibNwJwqRPCV8EIc_NXiFpNiR9ybyUt9gJPYJX259VN4QdotfActWg1lRmoIr08k6_vyLwMp-Znyb478OdjPgIoBMFa63N0a_f0CtuuR9QhqvnSZIdy9j3ZM"/>
+<div class="w-full h-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-sm">person</span>
+</div>
 @endif
 </div>
 </div>
@@ -67,13 +56,14 @@
 <div class="p-3 border-b border-white/10">
 <p class="text-sm font-bold text-white truncate">{{ auth()->user()->name ?? ($userData['name'] ?? 'User') }}</p>
 <p class="text-xs text-slate-400 truncate">{{ auth()->user()->email ?? ($userData['email'] ?? '') }}</p>
+<span class="inline-block mt-1 text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">{{ $planName }} Plan</span>
 </div>
 <div class="p-2">
-<a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+<a href="{{ route('profile.settings') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
 <span class="material-symbols-outlined text-sm">person</span>
 <span class="text-sm font-medium">Profile Settings</span>
 </a>
-<a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+<a href="{{ route('billing') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
 <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
 <span class="text-sm font-medium">Billing</span>
 </a>
@@ -91,3 +81,61 @@
 </div>
 </div>
 </header>
+
+@push('scripts')
+<script>
+(function () {
+    // ── Real-time balance polling ──────────────────────────────────────
+    const creditsEl = document.getElementById('topbar-credits-left');
+    const refreshIcon = document.getElementById('balanceRefreshIcon');
+    const refreshBtn  = document.getElementById('balanceRefreshBtn');
+
+    function fetchBalance() {
+        if (refreshIcon) {
+            refreshIcon.style.animation = 'spin 1s linear infinite';
+        }
+
+        fetch('/api/user/balance', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        })
+        .then(r => r.ok ? r.json() : null)
+        .then(json => {
+            if (json && json.success && creditsEl) {
+                creditsEl.textContent = json.data.credits_left ?? creditsEl.textContent;
+
+                // Also update sidebar if elements exist
+                const sidebarCredits = document.getElementById('sidebar-credits-left');
+                const sidebarTokens  = document.getElementById('sidebar-tokens-left');
+                const sidebarBar     = document.getElementById('sidebar-token-bar');
+                const sidebarPct     = document.getElementById('sidebar-token-pct');
+                if (sidebarCredits) sidebarCredits.textContent = json.data.credits_left ?? 0;
+                if (sidebarTokens)  sidebarTokens.textContent  = Number(json.data.tokens_left ?? 0).toLocaleString();
+                if (sidebarBar) {
+                    const pct = Math.round(((json.data.tokens_left ?? 0) / 10000) * 100);
+                    sidebarBar.style.width = pct + '%';
+                    if (sidebarPct) sidebarPct.textContent = pct + '%';
+                }
+            }
+        })
+        .catch(() => {})
+        .finally(() => {
+            if (refreshIcon) refreshIcon.style.animation = '';
+        });
+    }
+
+    // Manual refresh button
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', fetchBalance);
+    }
+
+    // Auto-poll every 60 seconds
+    setInterval(fetchBalance, 6000000);
+})();
+</script>
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+@endpush

@@ -87,16 +87,16 @@
         @endphp
         <div class="flex justify-between items-center mb-2">
             <span class="text-xs font-medium text-slate-300">Token Usage</span>
-            <span class="text-xs font-bold text-white">{{ $tokensPercentage }}%</span>
+            <span class="text-xs font-bold text-white" id="sidebar-token-pct">{{ $tokensPercentage }}%</span>
         </div>
         <div class="w-full bg-white/10 rounded-full h-1.5 mb-2 overflow-hidden">
-            <div class="bg-primary h-full rounded-full" style="width: {{ $tokensPercentage }}%"></div>
+            <div class="bg-primary h-full rounded-full" id="sidebar-token-bar" style="width: {{ $tokensPercentage }}%"></div>
         </div>
-        <p class="text-[10px] text-slate-400">{{ number_format($tokensLeft) }}/{{ number_format($maxTokens) }} Tokens</p>
+        <p class="text-[10px] text-slate-400"><span id="sidebar-tokens-left">{{ number_format($tokensLeft) }}</span>/{{ number_format($maxTokens) }} Tokens</p>
         <div class="mt-3 pt-3 border-t border-white/10">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-medium text-slate-300">Credits</span>
-                <span class="text-xs font-bold text-white">{{ $creditsLeft }}</span>
+                <span class="text-xs font-bold text-white" id="sidebar-credits-left">{{ $creditsLeft }}</span>
             </div>
         </div>
         @else
