@@ -66,6 +66,7 @@
             </div>
             <div class="flex-shrink-0">
                 <a href="https://clevercreator.ai/pricing" target="_blank"
+                   data-tooltip="View all pricing plans" data-tooltip-pos="left"
                    class="px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-bold transition-all flex items-center gap-2">
                     <span class="material-symbols-outlined text-sm">upgrade</span>
                     Upgrade Plan
@@ -131,6 +132,7 @@
             <p class="text-sm text-slate-400 mt-1">Upgrade your plan on Clever Creator to unlock higher limits.</p>
         </div>
         <a href="https://clevercreator.ai/pricing" target="_blank"
+           data-tooltip="Purchase additional credits" data-tooltip-pos="top"
            class="px-6 py-3 rounded-xl bg-gradient-to-r from-primary to-secondary text-white text-sm font-bold transition-all hover:shadow-lg hover:shadow-primary/20 flex items-center gap-2 flex-shrink-0">
             <span class="material-symbols-outlined text-sm">add_circle</span>
             Get More Credits

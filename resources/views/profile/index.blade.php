@@ -65,7 +65,7 @@
                         value="{{ $email }}"
                         disabled
                         class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-slate-500 cursor-not-allowed rounded-xl"
-                        title="Email cannot be changed here"
+                        data-tooltip="Email cannot be changed here" data-tooltip-pos="top"
                     />
                 </div>
             </div>
@@ -87,6 +87,7 @@
                 <button
                     type="submit"
                     id="profileSaveBtn"
+                    data-tooltip="Save your profile updates" data-tooltip-pos="top"
                     class="px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-bold transition-all flex items-center gap-2"
                 >
                     <span class="material-symbols-outlined text-sm" id="profileSaveIcon">save</span>
@@ -115,7 +116,7 @@
         </div>
         <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
             <span class="text-sm text-slate-400">Want more credits?</span>
-            <a href="{{ route('billing') }}" class="text-sm font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
+            <a href="{{ route('billing') }}" data-tooltip="Manage billing & plans" data-tooltip-pos="top" class="text-sm font-semibold text-primary hover:text-primary/80 transition-colors flex items-center gap-1">
                 <span>View Billing</span>
                 <span class="material-symbols-outlined text-sm">arrow_forward</span>
             </a>

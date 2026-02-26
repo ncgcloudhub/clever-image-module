@@ -90,6 +90,51 @@
             cursor: default;
             pointer-events: none;
         }
+        /* ── Tooltip System ── */
+        [data-tooltip] { position: relative; }
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(8, 10, 18, 0.97);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            color: #e2e8f0;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.015em;
+            padding: 5px 10px;
+            border-radius: 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 10000;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
+            line-height: 1.4;
+        }
+        [data-tooltip]:hover::after { opacity: 1; }
+        [data-tooltip][data-tooltip-pos="right"]::after {
+            bottom: auto; top: 50%;
+            left: calc(100% + 10px);
+            transform: translateY(-50%);
+        }
+        [data-tooltip][data-tooltip-pos="bottom"]::after {
+            bottom: auto;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        [data-tooltip][data-tooltip-pos="left"]::after {
+            bottom: auto; top: 50%;
+            left: auto; right: calc(100% + 10px);
+            transform: translateY(-50%);
+        }
+        /* Sidebar nav tooltips: only show when sidebar is collapsed */
+        #appSidebar:not(.sidebar-collapsed) nav a[data-tooltip]::after,
+        #appSidebar:not(.sidebar-collapsed) nav > div[data-tooltip]::after { display: none; }
     </style>
 @stack('styles')
 </head>

@@ -20,14 +20,14 @@
 </p>
 </div>
 <div class="h-8 w-px bg-white/10"></div>
-<button id="balanceRefreshBtn" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-slate-300" title="Refresh balance">
+<button id="balanceRefreshBtn" class="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-slate-300" data-tooltip="Refresh balance" data-tooltip-pos="bottom">
 <span class="material-symbols-outlined" id="balanceRefreshIcon">refresh</span>
 </button>
 </div>
 <div class="flex items-center gap-3">
 
 <div class="relative flex items-center gap-3 pl-4 border-l border-white/10">
-<button id="userMenuButton" class="flex items-center gap-3 hover:bg-white/5 rounded-xl p-2 -m-2 transition-colors cursor-pointer">
+<button id="userMenuButton" data-tooltip="Account options" data-tooltip-pos="bottom" class="flex items-center gap-3 hover:bg-white/5 rounded-xl p-2 -m-2 transition-colors cursor-pointer">
 <div class="text-right">
 <p class="text-sm font-bold text-white">{{ auth()->user()->name ?? ($userData['name'] ?? 'User') }}</p>
 <p class="text-[10px] text-primary font-medium">{{ $planName }} Plan</p>
