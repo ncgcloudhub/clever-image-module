@@ -15,8 +15,8 @@
 <p class="text-sm font-bold text-white">
     <span id="topbar-credits-left">{{ $creditsLeft }}</span>
     <span class="text-slate-400 mx-0.5">/</span>
-    <span id="topbar-credits-max">500</span>
-    <span class="text-primary tracking-tighter ml-1">Credits</span>
+    <span id="topbar-credits-max"> {{ $tokensLeft }}</span>
+    <span class="text-primary tracking-tighter ml-1">Crdits/Tokens</span>
 </p>
 </div>
 <div class="h-8 w-px bg-white/10"></div>
