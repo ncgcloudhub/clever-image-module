@@ -62,6 +62,7 @@
         <button
             id="quickGenerateBtn"
             onclick="quickGenerate()"
+            data-tooltip="Ctrl+Enter to generate" data-tooltip-pos="top"
             class="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
         >
             <span id="quickBtnText">Generate</span>
@@ -153,17 +154,18 @@
                             id="quickDownloadBtn"
                             href="#"
                             target="_blank"
+                            data-tooltip="Save image to device" data-tooltip-pos="top"
                             class="flex items-center justify-center gap-2 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
                         >
                             <span class="material-symbols-outlined text-lg">download</span>
                             Download Image
                         </a>
                         <div class="grid grid-cols-2 gap-3">
-                            <a href="{{ route('gallery') }}" class="flex items-center justify-center gap-1.5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold rounded-xl transition-all border border-white/10">
+                            <a href="{{ route('gallery') }}" data-tooltip="View all your images" data-tooltip-pos="top" class="flex items-center justify-center gap-1.5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold rounded-xl transition-all border border-white/10">
                                 <span class="material-symbols-outlined text-base">photo_library</span>
                                 Gallery
                             </a>
-                            <button onclick="resetQuickStart()" class="flex items-center justify-center gap-1.5 py-2.5 bg-secondary/10 hover:bg-secondary/20 text-secondary text-sm font-bold rounded-xl transition-all border border-secondary/20">
+                            <button onclick="resetQuickStart()" data-tooltip="Start a fresh generation" data-tooltip-pos="top" class="flex items-center justify-center gap-1.5 py-2.5 bg-secondary/10 hover:bg-secondary/20 text-secondary text-sm font-bold rounded-xl transition-all border border-secondary/20">
                                 <span class="material-symbols-outlined text-base">add_circle</span>
                                 New Image
                             </button>
@@ -246,6 +248,7 @@
                 id="lightboxDownload"
                 href="#"
                 target="_blank"
+                data-tooltip="Download this image" data-tooltip-pos="top"
                 class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
             >
                 <span class="material-symbols-outlined text-base">download</span>
@@ -264,6 +267,7 @@
     <!-- Close button (top-right) -->
     <button
         onclick="closeLightbox()"
+        data-tooltip="Close (Esc)" data-tooltip-pos="left"
         class="absolute top-5 right-5 z-20 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
     >
         <span class="material-symbols-outlined">close</span>
