@@ -8,6 +8,10 @@ use App\Http\Controllers\NanoVisualToolsController;
 use App\Http\Controllers\NanoBananaPlaygroundController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\CommunityGalleryController;
+use App\Http\Controllers\UserBalanceController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BillingPageController;
+use App\Http\Controllers\ImageGeneratorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +103,20 @@ Route::middleware('auth')->group(function () {
     Route::delete('/playground/api/session/{sessionId}', [NanoBananaPlaygroundController::class, 'deleteSession'])
         ->name('playground.api.session.delete');
 
+    // ==================================
+    // IMAGE GENERATOR ROUTES
+    // ==================================
+    Route::get('/image-generator', [ImageGeneratorController::class, 'index'])
+        ->name('image-generator.index');
+    Route::post('/image-generator/generate', [ImageGeneratorController::class, 'generate'])
+        ->name('image-generator.generate');
+    Route::get('/image-generator/provider/{providerId}/models', [ImageGeneratorController::class, 'getProviderModels'])
+        ->name('image-generator.provider.models');
+    Route::get('/image-generator/autocomplete', [ImageGeneratorController::class, 'getAutocomplete'])
+        ->name('image-generator.autocomplete');
+    Route::get('/image-generator/prompt-history', [ImageGeneratorController::class, 'getPromptHistory'])
+        ->name('image-generator.prompt-history');
+
     // Gallery routes
     Route::get('/gallery', [GalleryController::class, 'index'])
         ->name('gallery');
@@ -110,4 +128,18 @@ Route::middleware('auth')->group(function () {
         ->name('community.gallery');
     Route::get('/api/community-gallery', [CommunityGalleryController::class, 'getImages'])
         ->name('api.community.gallery');
+
+    // Real-time balance API (polled by topbar JS every 60s)
+    Route::get('/api/user/balance', [UserBalanceController::class, 'getBalance'])
+        ->name('api.user.balance');
+
+    // Profile settings
+    Route::get('/profile', [ProfileController::class, 'index'])
+        ->name('profile.settings');
+    Route::post('/api/profile/update', [ProfileController::class, 'update'])
+        ->name('api.profile.update');
+
+    // Billing page
+    Route::get('/billing', [BillingPageController::class, 'index'])
+        ->name('billing');
 });
