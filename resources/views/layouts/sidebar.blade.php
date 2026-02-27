@@ -34,6 +34,13 @@
         <span class="sidebar-label text-sm font-medium whitespace-nowrap">Image Tools</span>
     </a>
 
+    <a href="{{ route('image-generator.index') }}"
+       data-tooltip="Image Generator" data-tooltip-pos="right"
+       class="{{ request()->routeIs('image-generator.*') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('image-generator.*') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
+        <span class="material-symbols-outlined flex-shrink-0">image_search</span>
+        <span class="sidebar-label text-sm font-medium whitespace-nowrap">Image Generator</span>
+    </a>
+
     {{-- Playground section --}}
     <div class="sidebar-label pt-3 pb-1 px-4">
         <p class="text-[10px] uppercase tracking-widest text-slate-600 font-bold">Playground</p>
