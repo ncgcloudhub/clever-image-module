@@ -316,6 +316,22 @@
         from { opacity: 0; transform: translateY(12px); }
         to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* ── Dark native select dropdown ────────────────────────────────── */
+    select {
+        color-scheme: dark;
+        background-color: #1a2030;
+        color: #e2e8f0;
+    }
+    select option {
+        background-color: #1a2030;
+        color: #e2e8f0;
+    }
+    select option:checked,
+    select option:hover {
+        background-color: rgba(19, 164, 236, 0.25);
+        color: #13a4ec;
+    }
 </style>
 @endpush
 
@@ -1017,7 +1033,7 @@
                         <select
                             id="interface_feature_${feature.name}"
                             name="features[${feature.name}]"
-                            class="w-full bg-white/5 border-white/10 rounded-lg p-2 text-sm text-white focus:ring-primary focus:border-primary transition-all"
+                            class="w-full bg-slate-800/90 border border-white/10 rounded-lg p-2 text-sm text-white focus:ring-primary focus:border-primary transition-all"
                         >
                             ${(feature.options || []).map(opt => `
                                 <option value="${escapeHtml(opt)}" ${opt === feature.default ? 'selected' : ''}>
@@ -1148,7 +1164,7 @@
                         <select
                             id="feature_${feature.name}"
                             name="features[${feature.name}]"
-                            class="w-full bg-white/5 border-white/10 rounded-xl p-3 text-white focus:ring-primary focus:border-primary transition-all"
+                            class="w-full bg-slate-800/90 border border-white/10 rounded-xl p-3 text-white focus:ring-primary focus:border-primary transition-all"
                         >
                             ${(feature.options || []).map(opt => `
                                 <option value="${escapeHtml(opt)}" ${opt === feature.default ? 'selected' : ''}>
