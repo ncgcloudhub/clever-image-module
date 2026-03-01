@@ -323,11 +323,11 @@
 <div class="h-full">
 
 <!-- Floating Test Button (dev only) -->
-<button onclick="testRegenerateUI()" id="floatingTestBtn"
+{{-- <button onclick="testRegenerateUI()" id="floatingTestBtn"
     class="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700/90 border border-white/10 hover:border-primary/40 rounded-full shadow-xl backdrop-blur-sm text-xs text-slate-300 hover:text-primary transition-all group">
     <span class="material-symbols-outlined text-sm group-hover:animate-spin" style="animation-duration:2s">science</span>
     Test Regenerate UI
-</button>
+</button> --}}
 
 <!-- Directory/Grid View -->
 <div id="directoryView">
