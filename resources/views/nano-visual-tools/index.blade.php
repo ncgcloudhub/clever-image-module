@@ -734,6 +734,17 @@
 </div>
 </div>
 
+<!-- Image Lightbox -->
+<div id="imageLightbox" class="hidden fixed inset-0 z-[300] flex items-center justify-center p-4" onclick="closeImageLightbox()">
+    <div class="absolute inset-0 bg-black/92 backdrop-blur-sm"></div>
+    <button onclick="event.stopPropagation(); closeImageLightbox()" class="absolute top-4 right-4 z-10 p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white/70 hover:text-white transition-all">
+        <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+    <img id="lightboxImage" src="" alt="Full size preview"
+        class="relative z-10 max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+        onclick="event.stopPropagation()">
+</div>
+
 <!-- Prompt Expand Modal -->
 <div id="promptExpandModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closePromptModal()"></div>
@@ -1003,6 +1014,15 @@
                                 <span class="text-[8px] text-slate-500 mt-0.5">PNG/JPG</span>
                             </div>
                         </div>
+                        <button
+                            type="button"
+                            id="zoom_${upload.name}"
+                            onclick="event.stopPropagation(); openImageLightbox(document.querySelector('#preview_${upload.name} img').src)"
+                            class="absolute top-1.5 right-1.5 z-30 hidden p-1 bg-black/70 hover:bg-primary/80 rounded-md text-white transition-all"
+                            title="View full size"
+                        >
+                            <span class="material-symbols-outlined text-sm">zoom_in</span>
+                        </button>
                     </div>
                     ${upload.description ? `<p class="text-[9px] text-slate-500 mt-1 leading-tight">${escapeHtml(upload.description)}</p>` : ''}
                 `;
@@ -1092,7 +1112,9 @@
             reader.onload = function(e) {
                 preview.querySelector('img').src = e.target.result;
                 preview.classList.remove('hidden');
-                preview.previousElementSibling.classList.add('hidden');
+                const uploadName = previewId.replace('preview_', '');
+                const zoomBtn = document.getElementById('zoom_' + uploadName);
+                if (zoomBtn) zoomBtn.classList.remove('hidden');
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -1829,6 +1851,20 @@
         }
     }
 
+    // ─── Image Lightbox ──────────────────────────────────────────────────────
+    function openImageLightbox(src) {
+        if (!src) return;
+        document.getElementById('lightboxImage').src = src;
+        document.getElementById('imageLightbox').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageLightbox() {
+        document.getElementById('imageLightbox').classList.add('hidden');
+        document.getElementById('lightboxImage').src = '';
+        document.body.style.overflow = '';
+    }
+
     // ─── Prompt Expand Modal ─────────────────────────────────────────────────
     function openPromptModal(sourceId, title) {
         const source = document.getElementById(sourceId);
@@ -1853,8 +1889,9 @@
     }
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !document.getElementById('promptExpandModal').classList.contains('hidden')) {
-            closePromptModal();
+        if (e.key === 'Escape') {
+            if (!document.getElementById('imageLightbox').classList.contains('hidden')) closeImageLightbox();
+            else if (!document.getElementById('promptExpandModal').classList.contains('hidden')) closePromptModal();
         }
     });
 </script>
