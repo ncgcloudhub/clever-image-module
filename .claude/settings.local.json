@@ -27,7 +27,8 @@
       "Bash(docker ps -a --format \"table {{.Names}}\\\\t{{.Ports}}\\\\t{{.Status}}\")",
       "Bash(docker stop oauth_visual_nginx)",
       "Bash(docker rm oauth_visual_nginx)",
-      "Bash(xargs ls -la)"
+      "Bash(xargs ls -la)",
+      "Bash(find \"d:/Work/USA/new_dev_ai/0auth-visual-tools/resources/views\" -name \"*.blade.php\" -exec grep -l \"sidebar\\\\|profile\" {} ;)"
     ]
   }
 }

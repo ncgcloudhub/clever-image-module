@@ -12,6 +12,7 @@ use App\Http\Controllers\UserBalanceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BillingPageController;
 use App\Http\Controllers\ImageGeneratorController;
+use App\Http\Controllers\StatsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -150,4 +151,10 @@ Route::middleware('auth')->group(function () {
     // Billing page
     Route::get('/billing', [BillingPageController::class, 'index'])
         ->name('billing');
+
+    // Stats page
+    Route::get('/stats', [StatsController::class, 'index'])
+        ->name('stats');
+    Route::get('/api/stats', [StatsController::class, 'getStats'])
+        ->name('api.stats');
 });

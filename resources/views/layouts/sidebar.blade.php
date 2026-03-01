@@ -77,10 +77,12 @@
         <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Account</p>
     </div>
 
-    <div data-tooltip="Settings" data-tooltip-pos="right" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
-        <span class="material-symbols-outlined flex-shrink-0">settings</span>
-        <span class="sidebar-label text-sm font-medium whitespace-nowrap">Settings</span>
-    </div>
+    <a href="{{ route('stats') }}"
+       data-tooltip="Image Stats" data-tooltip-pos="right"
+       class="{{ request()->routeIs('stats') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('stats') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
+        <span class="material-symbols-outlined flex-shrink-0">bar_chart</span>
+        <span class="sidebar-label text-sm font-medium whitespace-nowrap">Stats</span>
+    </a>
     <a href="https://clevercreator.ai/contact-us" target="_blank" data-tooltip="Help Center" data-tooltip-pos="right" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
         <span class="material-symbols-outlined flex-shrink-0">help</span>
         <span class="sidebar-label text-sm font-medium whitespace-nowrap">Help Center</span>
