@@ -138,6 +138,14 @@ Route::middleware('auth')->group(function () {
         ->name('profile.settings');
     Route::post('/api/profile/update', [ProfileController::class, 'update'])
         ->name('api.profile.update');
+    Route::post('/api/profile/password', [ProfileController::class, 'changePassword'])
+        ->name('api.profile.password');
+    Route::get('/api/profile/referrals', [ProfileController::class, 'getReferrals'])
+        ->name('api.profile.referrals');
+    Route::post('/api/profile/referrals', [ProfileController::class, 'createReferral'])
+        ->name('api.profile.referrals.create');
+    Route::delete('/api/profile/referrals/{id}', [ProfileController::class, 'deleteReferral'])
+        ->name('api.profile.referrals.delete');
 
     // Billing page
     Route::get('/billing', [BillingPageController::class, 'index'])
