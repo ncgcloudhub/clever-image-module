@@ -110,6 +110,72 @@
         user-select: none;
     }
 
+    /* ── Example image cards in empty state ─────────── */
+    .canvas-example-card {
+        pointer-events: auto;
+        position: relative;
+        width: 148px;
+        height: 148px;
+        border-radius: 0.875rem;
+        overflow: visible;
+        border: 1px solid rgba(255,255,255,0.06);
+        cursor: pointer;
+        background: #16181f;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        flex-shrink: 0;
+    }
+    .canvas-example-card:hover {
+        transform: translateY(-4px) scale(1.03);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+        border-color: rgba(99,102,241,0.35);
+    }
+    .canvas-example-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0.875rem;
+        display: block;
+    }
+    .canvas-example-tooltip {
+        position: absolute;
+        bottom: calc(100% + 10px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(12, 15, 23, 0.97);
+        border: 1px solid rgba(255,255,255,0.09);
+        color: #94a3b8;
+        font-size: 11px;
+        line-height: 1.5;
+        padding: 7px 11px;
+        border-radius: 9px;
+        white-space: normal;
+        width: 210px;
+        text-align: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s;
+        z-index: 50;
+    }
+    .canvas-example-card:hover .canvas-example-tooltip { opacity: 1; }
+    .canvas-example-use-label {
+        pointer-events: none;
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.72);
+        color: #e2e8f0;
+        font-size: 10px;
+        font-weight: 500;
+        padding: 3px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.15s;
+        backdrop-filter: blur(4px);
+    }
+    .canvas-example-card:hover .canvas-example-use-label { opacity: 1; }
+
     /* ── Flow strip (right, vertical) ───────────────── */
     #flowStrip {
         width: 72px;
@@ -463,15 +529,35 @@
 
         {{-- Empty hint --}}
         <div id="canvasEmptyHint">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-white/5 flex items-center justify-center mb-4">
-                <span class="material-symbols-outlined text-3xl text-slate-700">image_search</span>
-            </div>
-            <p class="text-sm font-medium text-slate-700">Use the minichat to generate images</p>
-            <p class="text-xs text-slate-800 mt-1">They'll appear here on the canvas</p>
-            <div class="mt-4 flex items-center gap-2 text-xs text-slate-700">
-                <span class="material-symbols-outlined text-sm">south_east</span>
-                <span>Chat panel is bottom-right</span>
-            </div>
+            @if(count($examples) > 0)
+                {{-- Shuffled example images (2-3 shown, tooltips on hover) --}}
+                <p class="text-xs text-slate-700 mb-3 tracking-wide uppercase" style="pointer-events:none; font-size:10px; letter-spacing:.08em;">Try an example</p>
+                <div class="flex gap-3 mb-4">
+                    @foreach($examples as $ex)
+                    <button class="canvas-example-card" onclick="useExamplePrompt({{ json_encode($ex['prompt']) }})">
+                        <img src="{{ $ex['image_url'] }}"
+                             alt="Example"
+                             class="canvas-example-img">
+                        <div class="canvas-example-tooltip">{{ $ex['prompt'] }}</div>
+                        <span class="canvas-example-use-label">Use prompt</span>
+                    </button>
+                    @endforeach
+                </div>
+                <p class="text-xs text-slate-800" style="pointer-events:none;">
+                    or describe your own in the chat&nbsp;
+                    <span class="material-symbols-outlined text-xs align-middle" style="font-size:12px;">south_east</span>
+                </p>
+            @else
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-white/5 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-3xl text-slate-700">image_search</span>
+                </div>
+                <p class="text-sm font-medium text-slate-700">Use the minichat to generate images</p>
+                <p class="text-xs text-slate-800 mt-1">They'll appear here on the canvas</p>
+                <div class="mt-4 flex items-center gap-2 text-xs text-slate-700">
+                    <span class="material-symbols-outlined text-sm">south_east</span>
+                    <span>Chat panel is bottom-right</span>
+                </div>
+            @endif
         </div>
 
         {{-- Main canvas image container --}}
@@ -1220,6 +1306,15 @@ function miniResize(el) {
 
 function handleMiniKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMiniChat(); }
+}
+
+// ── Canvas example prompts ────────────────────────────────────────────────────
+function useExamplePrompt(prompt) {
+    const input = document.getElementById('miniPromptInput');
+    if (!input) return;
+    input.value = prompt;
+    miniResize(input);
+    input.focus();
 }
 
 // ── Quick actions ─────────────────────────────────────────────────────────────
