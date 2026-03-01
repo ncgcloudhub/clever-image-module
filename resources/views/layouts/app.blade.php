@@ -138,6 +138,9 @@
         /* Sidebar nav tooltips: only show when sidebar is collapsed */
         #appSidebar:not(.sidebar-collapsed) nav a[data-tooltip]::after,
         #appSidebar:not(.sidebar-collapsed) nav > div[data-tooltip]::after { display: none; }
+        /* Allow tooltips to escape the sidebar/nav overflow:hidden when collapsed */
+        #appSidebar.sidebar-collapsed,
+        #appSidebar.sidebar-collapsed nav { overflow: visible; }
     </style>
 @stack('styles')
 </head>
