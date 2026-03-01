@@ -520,11 +520,16 @@
 
             <!-- Modification Prompt -->
             <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Modification Prompt</label>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Modification Prompt</label>
+                    <button type="button" onclick="openPromptModal('regenPrompt', 'Modification Prompt')" class="flex items-center gap-1 text-slate-500 hover:text-primary transition-colors" title="Expand prompt editor">
+                        <span class="material-symbols-outlined text-base">open_in_full</span>
+                    </button>
+                </div>
                 <textarea
                     id="regenPrompt"
                     rows="3"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-none"
+                    class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-y"
                     placeholder="Describe how you want to modify the image..."
                 ></textarea>
             </div>
@@ -712,6 +717,30 @@
     <div id="imageGallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
 </div>
 </div>
+
+<!-- Prompt Expand Modal -->
+<div id="promptExpandModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closePromptModal()"></div>
+    <div class="relative w-full max-w-2xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col gap-4 p-6">
+        <div class="flex items-center justify-between">
+            <h3 id="promptModalTitle" class="text-sm font-bold text-slate-200 uppercase tracking-widest">Prompt</h3>
+            <button onclick="closePromptModal()" class="text-slate-500 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+        <textarea
+            id="promptModalTextarea"
+            rows="12"
+            class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-y"
+            placeholder="Enter your prompt here..."
+        ></textarea>
+        <div class="flex justify-end gap-3">
+            <button onclick="closePromptModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-all">Cancel</button>
+            <button onclick="applyPromptModal()" class="px-5 py-2 text-xs font-bold bg-primary hover:bg-primary/80 text-white rounded-lg transition-all">Apply</button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -898,13 +927,18 @@
         if (tool.prompt_required) {
             const promptDiv = document.createElement('div');
             promptDiv.innerHTML = `
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">${sectionNumber}. Prompt</label>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${sectionNumber}. Prompt</label>
+                    <button type="button" onclick="openPromptModal('interface_prompt', 'Prompt')" class="flex items-center gap-1 text-slate-500 hover:text-primary transition-colors" title="Expand prompt editor">
+                        <span class="material-symbols-outlined text-base">open_in_full</span>
+                    </button>
+                </div>
                 <textarea
                     id="interface_prompt"
                     name="prompt"
                     rows="2"
                     required
-                    class="w-full bg-white/5 border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-none"
+                    class="w-full bg-white/5 border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-y"
                     placeholder="${escapeHtml(tool.prompt_placeholder || 'Enter your prompt...')}"
                 ></textarea>
                 ${tool.default_prompt ? `<p class="text-[10px] text-slate-500 mt-1">Default: ${escapeHtml(tool.default_prompt)}</p>` : ''}
@@ -1778,5 +1812,34 @@
             alert('Image URL copied to clipboard!');
         }
     }
+
+    // ─── Prompt Expand Modal ─────────────────────────────────────────────────
+    function openPromptModal(sourceId, title) {
+        const source = document.getElementById(sourceId);
+        document.getElementById('promptModalTextarea').value = source ? source.value : '';
+        document.getElementById('promptModalTitle').textContent = title || 'Prompt';
+        document.getElementById('promptExpandModal').dataset.sourceId = sourceId;
+        document.getElementById('promptExpandModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('promptModalTextarea').focus(), 50);
+    }
+
+    function applyPromptModal() {
+        const modal = document.getElementById('promptExpandModal');
+        const source = document.getElementById(modal.dataset.sourceId);
+        if (source) source.value = document.getElementById('promptModalTextarea').value;
+        closePromptModal();
+    }
+
+    function closePromptModal() {
+        document.getElementById('promptExpandModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !document.getElementById('promptExpandModal').classList.contains('hidden')) {
+            closePromptModal();
+        }
+    });
 </script>
 @endpush
