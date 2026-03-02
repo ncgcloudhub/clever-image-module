@@ -1083,8 +1083,17 @@
                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 onchange="previewUploadedImage(this, 'preview_${upload.name}')"
                             >
-                            <div id="preview_${upload.name}" class="absolute inset-0 hidden">
-                                <img class="w-full h-full object-cover" alt="Preview">
+                            <div id="preview_${upload.name}" class="absolute inset-0 hidden z-20">
+                                <img class="w-full h-full object-cover cursor-zoom-in" alt="Preview"
+                                     onclick="event.stopPropagation(); openImageLightbox(this.src)">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeUploadedImage('${upload.name}')"
+                                    class="absolute top-1.5 right-1.5 z-30 size-6 rounded-md bg-black/70 hover:bg-red-500/80 text-white flex items-center justify-center transition-colors"
+                                    title="Remove image"
+                                >
+                                    <span class="material-symbols-outlined text-sm">close</span>
+                                </button>
                             </div>
                             <div class="relative z-0 flex flex-col items-center pointer-events-none">
                                 <span class="material-symbols-outlined text-primary text-lg mb-1">cloud_upload</span>
@@ -1092,15 +1101,6 @@
                                 <span class="text-[8px] text-slate-500 mt-0.5">PNG/JPG</span>
                             </div>
                         </div>
-                        <button
-                            type="button"
-                            id="zoom_${upload.name}"
-                            onclick="event.stopPropagation(); openImageLightbox(document.querySelector('#preview_${upload.name} img').src)"
-                            class="absolute top-1.5 right-1.5 z-30 hidden p-1 bg-black/70 hover:bg-primary/80 rounded-md text-white transition-all"
-                            title="View full size"
-                        >
-                            <span class="material-symbols-outlined text-sm">zoom_in</span>
-                        </button>
                     </div>
                     ${upload.description ? `<p class="text-[9px] text-slate-500 mt-1 leading-tight">${escapeHtml(upload.description)}</p>` : ''}
                 `;
@@ -1190,12 +1190,19 @@
             reader.onload = function(e) {
                 preview.querySelector('img').src = e.target.result;
                 preview.classList.remove('hidden');
-                const uploadName = previewId.replace('preview_', '');
-                const zoomBtn = document.getElementById('zoom_' + uploadName);
-                if (zoomBtn) zoomBtn.classList.remove('hidden');
             };
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    function removeUploadedImage(uploadName) {
+        const input = document.getElementById(`interface_upload_${uploadName}`);
+        const preview = document.getElementById(`preview_${uploadName}`);
+        if (!input || !preview) return;
+        input.value = '';
+        const img = preview.querySelector('img');
+        if (img) img.src = '';
+        preview.classList.add('hidden');
     }
 
     function closeToolModal() {
