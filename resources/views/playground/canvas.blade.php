@@ -4,16 +4,28 @@
 
 @push('styles')
 <style>
-    /* ── Kill default padding so we go full-height ─── */
-    #appMain > div.p-10 { padding: 0 !important; }
+    /* ── Make this page fully viewport-fitted (no page scroll) ─── */
+    #appMain {
+        height: 100dvh;
+        overflow: hidden;
+    }
+    #appMain > div {
+        padding: 0 !important;
+        height: calc(100dvh - 4rem); /* mobile topbar: h-16 */
+        overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+        #appMain > div { height: calc(100dvh - 5rem); } /* desktop topbar: h-20 */
+    }
 
     /* ── Root layout ─────────────────────────────────── */
     #studioWrap {
         display: flex;
         width: 100%;
-        height: calc(100vh - 5rem);
+        height: 100%;
         overflow: hidden;
         position: relative;
+        min-height: 0;
     }
 
     /* ── Canvas stage ────────────────────────────────── */
@@ -497,7 +509,7 @@
 
     /* ── Topbar is h-16 (4rem) on mobile, h-20 (5rem) on lg+ ── */
     @media (max-width: 1023px) {
-        #studioWrap { height: calc(100vh - 4rem); }
+        #studioWrap { height: 100%; }
     }
 
     /* ════════════════════════════════════════════════════════
@@ -520,10 +532,20 @@
         #canvasInfo span.text-slate-700 { display: none; }
 
         /* ── Canvas image: use more screen ──────────────────── */
-        #canvasImageContainer { padding: 3.5rem 0.5rem 0.5rem; }
+        #canvasImageContainer {
+            inset: 0 0 55vh 0; /* reserve space for bottom minichat sheet */
+            padding: 3.5rem 0.5rem 0.5rem;
+        }
         #canvasMainImage {
             max-width: min(92vw, 640px);
-            max-height: 52vh;
+            max-height: 34vh;
+        }
+
+        /* Keep empty-state content inside visible canvas area (above minichat) */
+        #canvasEmptyHint {
+            inset: 0 0 55vh 0;
+            padding: 0.5rem;
+            justify-content: center;
         }
 
         /* ── Quick-action chips: constrain width ─────────────── */
@@ -533,13 +555,16 @@
         #canvasToolbar { padding: 0.375rem 0.5rem; gap: 0.375rem; }
         #canvasToolbar span.text-xs { font-size: 0.7rem; }
 
-        /* ── Example cards: smaller + horizontally scrollable ── */
-        .canvas-example-card { width: 88px; height: 88px; }
+        /* ── Example cards: smaller + wrapped (no horizontal scroll) ── */
+        .canvas-example-card { width: 82px; height: 82px; }
         #exampleCardsRow {
-            overflow-x: auto;
-            max-width: calc(100vw - 2rem);
+            overflow-x: hidden;
+            max-width: calc(100vw - 1.25rem);
             padding-bottom: 6px;
             scrollbar-width: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            row-gap: 0.5rem;
         }
         #exampleCardsRow::-webkit-scrollbar { display: none; }
 
@@ -549,9 +574,10 @@
             right: 0.75rem !important;
             left: auto !important;
             bottom: 0.75rem !important;
-            max-height: 55vh;
+            height: 52vh;
+            max-height: 52vh;
         }
-        #minichatMessages { max-height: 28vh; }
+        #minichatMessages { max-height: none; }
         #minichatFab {
             right: 0.75rem !important;
             bottom: 0.75rem !important;
@@ -573,6 +599,7 @@
         #minichat {
             width: 320px !important;
             right: calc(72px + 1rem) !important;
+            max-height: 50vh;
         }
         #minichatFab { right: calc(72px + 1rem) !important; }
 
