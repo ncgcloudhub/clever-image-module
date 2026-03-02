@@ -489,6 +489,99 @@
         background: rgba(19,164,236,0.1);
         color: #e2e8f0;
     }
+
+    /* ── Touch devices: always show image action buttons ────── */
+    @media (hover: none) {
+        #canvasImageActions { opacity: 1 !important; }
+    }
+
+    /* ── Topbar is h-16 (4rem) on mobile, h-20 (5rem) on lg+ ── */
+    @media (max-width: 1023px) {
+        #studioWrap { height: calc(100vh - 4rem); }
+    }
+
+    /* ════════════════════════════════════════════════════════
+       MOBILE  ≤ 639 px
+       ════════════════════════════════════════════════════════ */
+    @media (max-width: 639px) {
+
+        /* ── Hide flow strip – reclaim 72 px of canvas width ── */
+        #flowStrip { display: none !important; }
+
+        /* ── Canvas info badge: drop the flowStrip offset ──── */
+        #canvasInfo {
+            right: 0.75rem;
+            gap: 0.5rem;
+            padding: 0.375rem 0.625rem;
+            font-size: 0.65rem;
+        }
+        /* Hide secondary info to save space */
+        #canvasInfo #sessionLabel,
+        #canvasInfo span.text-slate-700 { display: none; }
+
+        /* ── Canvas image: use more screen ──────────────────── */
+        #canvasImageContainer { padding: 3.5rem 0.5rem 0.5rem; }
+        #canvasMainImage {
+            max-width: min(92vw, 640px);
+            max-height: 52vh;
+        }
+
+        /* ── Quick-action chips: constrain width ─────────────── */
+        #canvasQuickActions { max-width: calc(100vw - 2rem); }
+
+        /* ── Toolbar: tighter padding on small screens ──────── */
+        #canvasToolbar { padding: 0.375rem 0.5rem; gap: 0.375rem; }
+        #canvasToolbar span.text-xs { font-size: 0.7rem; }
+
+        /* ── Example cards: smaller + horizontally scrollable ── */
+        .canvas-example-card { width: 88px; height: 88px; }
+        #exampleCardsRow {
+            overflow-x: auto;
+            max-width: calc(100vw - 2rem);
+            padding-bottom: 6px;
+            scrollbar-width: none;
+        }
+        #exampleCardsRow::-webkit-scrollbar { display: none; }
+
+        /* ── Minichat: full-width bottom sheet ──────────────── */
+        #minichat {
+            width: calc(100vw - 1.5rem) !important;
+            right: 0.75rem !important;
+            left: auto !important;
+            bottom: 0.75rem !important;
+            max-height: 55vh;
+        }
+        #minichatMessages { max-height: 28vh; }
+        #minichatFab {
+            right: 0.75rem !important;
+            bottom: 0.75rem !important;
+        }
+
+        /* ── Sessions modal: full screen with small margin ───── */
+        .sess-modal-backdrop { padding: 0.75rem; }
+        .sess-modal-inner { border-radius: 1rem; max-height: 88vh; }
+        /* Search input: narrower to fit flex row */
+        #sessionSearch { width: 6rem; }
+    }
+
+    /* ════════════════════════════════════════════════════════
+       TABLET  640 px – 1023 px
+       ════════════════════════════════════════════════════════ */
+    @media (min-width: 640px) and (max-width: 1023px) {
+
+        /* ── Narrower minichat so it doesn't crowd the canvas ── */
+        #minichat {
+            width: 320px !important;
+            right: calc(72px + 1rem) !important;
+        }
+        #minichatFab { right: calc(72px + 1rem) !important; }
+
+        /* ── Slightly smaller example cards ─────────────────── */
+        .canvas-example-card { width: 118px; height: 118px; }
+
+        /* ── Canvas image: allow a bit more width ────────────── */
+        #canvasMainImage { max-width: min(80%, 640px); }
+    }
 </style>
 @endpush
 
@@ -532,7 +625,7 @@
             @if(count($examples) > 0)
                 {{-- Shuffled example images (2-3 shown, tooltips on hover) --}}
                 <p class="text-xs text-slate-700 mb-3 tracking-wide uppercase" style="pointer-events:none; font-size:10px; letter-spacing:.08em;">Try an example</p>
-                <div class="flex gap-3 mb-4">
+                <div id="exampleCardsRow" class="flex gap-3 mb-4">
                     @foreach($examples as $ex)
                     <button class="canvas-example-card" onclick="useExamplePrompt({{ json_encode($ex['prompt']) }})">
                         <img src="{{ $ex['image_url'] }}"
@@ -759,14 +852,15 @@ const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    // Auto-collapse sidebar for full-screen canvas experience
+    // Auto-collapse sidebar for full-screen canvas experience (desktop only)
     const sidebar = document.getElementById('appSidebar');
     const main    = document.getElementById('appMain');
     const icon    = document.getElementById('sidebarToggleIcon');
     if (sidebar && !sidebar.classList.contains('sidebar-collapsed')) {
         sidebar.classList.add('sidebar-collapsed');
-        if (main)  main.style.marginLeft = '4.5rem';
-        if (icon)  icon.textContent = 'chevron_right';
+        // On mobile the sidebar slides in via -translate-x-full, not margin — skip margin
+        if (main && window.innerWidth >= 1024) main.style.marginLeft = '4.5rem';
+        if (icon) icon.textContent = 'chevron_right';
     }
 
     newChat();
