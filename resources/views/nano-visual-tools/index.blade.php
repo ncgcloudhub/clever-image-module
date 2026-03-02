@@ -393,10 +393,10 @@
 </div>
 
 <!-- Tool Interface View -->
-<div id="toolInterfaceView" class="hidden -m-10">
-    <div class="flex min-h-screen overflow-hidden">
+<div id="toolInterfaceView" class="hidden -m-4 sm:-m-6 lg:-m-10">
+    <div class="flex flex-col lg:flex-row lg:min-h-[calc(100vh-4rem)] xl:min-h-[calc(100vh-5rem)] lg:overflow-hidden">
         <!-- Left Configuration Panel -->
-        <section class="w-80 lg:w-96 glass-panel border-r border-white/5 flex flex-col overflow-hidden">
+        <section class="w-full lg:w-80 xl:w-96 glass-panel border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col max-h-[55vh] lg:max-h-none overflow-hidden">
             <!-- Header with Back Button -->
             <div class="p-4 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
                 <button onclick="backToDirectory()" class="p-2 hover:bg-white/5 rounded-lg transition-colors flex-shrink-0">
@@ -438,7 +438,7 @@
         </section>
 
         <!-- Right Preview Area -->
-        <section id="previewRightSection" class="flex-1 bg-black/40 flex flex-col items-center p-6 relative overflow-y-auto custom-scrollbar">
+        <section id="previewRightSection" class="flex-1 min-h-[50vh] lg:min-h-0 bg-black/40 flex flex-col items-center p-4 lg:p-6 relative overflow-y-auto custom-scrollbar">
             <!-- Preview Controls -->
             <div id="previewControls" class="absolute top-4 right-4 flex items-center gap-2 z-20 hidden">
                 <div class="bg-background-dark/90 backdrop-blur-md border border-white/10 rounded-lg flex p-1 shadow-xl">
@@ -789,6 +789,11 @@
 
             const data = await response.json();
 
+            if (response.status === 401) {
+                window.location.href = '{{ route("login") }}';
+                return;
+            }
+
             if (!response.ok || !data.success) {
                 throw new Error(data.error || 'Failed to load tools');
             }
@@ -909,7 +914,7 @@
         const icon    = document.getElementById('sidebarToggleIcon');
         if (sidebar && !sidebar.classList.contains('sidebar-collapsed')) {
             sidebar.classList.add('sidebar-collapsed');
-            if (main) main.style.marginLeft = '4.5rem';
+            if (window.innerWidth >= 1024 && main) main.style.marginLeft = '4.5rem';
             if (icon) icon.textContent = 'chevron_right';
         }
     }
@@ -920,7 +925,7 @@
         const icon    = document.getElementById('sidebarToggleIcon');
         if (sidebar) {
             sidebar.classList.remove('sidebar-collapsed');
-            if (main) main.style.marginLeft = '';
+            if (window.innerWidth >= 1024 && main) main.style.marginLeft = '';
             if (icon) icon.textContent = 'chevron_left';
         }
     }

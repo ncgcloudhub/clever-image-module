@@ -1,5 +1,5 @@
 <!-- Sidebar -->
-<aside id="appSidebar" class="w-72 glass border-r border-white/5 flex flex-col fixed h-screen z-50 overflow-hidden">
+<aside id="appSidebar" class="w-72 glass border-r border-white/5 flex flex-col fixed h-screen z-50 overflow-hidden -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
 
 <!-- Logo -->
 <div class="sidebar-logo p-5 flex items-center gap-3 flex-shrink-0 relative">
@@ -21,10 +21,17 @@
         <h1 class="text-lg font-bold tracking-tight text-white whitespace-nowrap">{{ $siteSettings['title'] ?? 'Clever Creator' }}</h1>
         <p class="text-[10px] uppercase tracking-widest text-primary font-semibold whitespace-nowrap">Premium AI Suite</p>
     </div>
-    <button onclick="toggleSidebar()" data-tooltip="Collapse sidebar" data-tooltip-pos="right"
-        class="sidebar-toggle-btn ml-auto flex-shrink-0 size-8 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-center">
-        <span id="sidebarToggleIcon" class="material-symbols-outlined text-sm transition-transform duration-300">chevron_left</span>
-    </button>
+    <div class="ml-auto flex-shrink-0 flex items-center">
+        <!-- Mobile: close sidebar -->
+        <button onclick="toggleMobileSidebar()" class="lg:hidden size-8 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-center">
+            <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+        <!-- Desktop: collapse sidebar -->
+        <button onclick="toggleSidebar()" data-tooltip="Collapse sidebar" data-tooltip-pos="right"
+            class="sidebar-toggle-btn hidden lg:flex size-8 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-colors items-center justify-center">
+            <span id="sidebarToggleIcon" class="material-symbols-outlined text-sm transition-transform duration-300">chevron_left</span>
+        </button>
+    </div>
 </div>
 
 <!-- Nav -->

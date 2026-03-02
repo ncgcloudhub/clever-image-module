@@ -148,23 +148,48 @@
 <div class="flex min-h-screen">
 @include('layouts.sidebar')
 <!-- Main Content -->
-<main id="appMain" class="flex-1 ml-72">
+<main id="appMain" class="flex-1 lg:ml-72">
 @include('layouts.topbar')
-<div class="p-10 space-y-10">
+<div class="p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-10">
 @yield('content')
 </div>
 </main>
 </div>
+
+<!-- Mobile sidebar overlay -->
+<div id="mobileSidebarOverlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onclick="toggleMobileSidebar()"></div>
+
 @stack('modals')
 @stack('scripts')
 <script>
-    // Sidebar toggle
+    // Mobile sidebar toggle
+    function toggleMobileSidebar() {
+        const sidebar = document.getElementById('appSidebar');
+        const overlay = document.getElementById('mobileSidebarOverlay');
+        const isHidden = sidebar.classList.contains('-translate-x-full');
+        sidebar.classList.toggle('-translate-x-full', !isHidden);
+        overlay.classList.toggle('hidden', !isHidden);
+        document.body.style.overflow = isHidden ? 'hidden' : '';
+    }
+
+    // Close mobile sidebar on resize to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 1024) {
+            const overlay = document.getElementById('mobileSidebarOverlay');
+            if (overlay) overlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Sidebar toggle (desktop collapse/expand)
     function toggleSidebar() {
         const sidebar = document.getElementById('appSidebar');
         const main = document.getElementById('appMain');
         const icon = document.getElementById('sidebarToggleIcon');
         const isNowCollapsed = sidebar.classList.toggle('sidebar-collapsed');
-        main.style.marginLeft = isNowCollapsed ? '4.5rem' : '';
+        if (window.innerWidth >= 1024) {
+            main.style.marginLeft = isNowCollapsed ? '4.5rem' : '';
+        }
         if (icon) icon.textContent = isNowCollapsed ? 'chevron_right' : 'chevron_left';
     }
 

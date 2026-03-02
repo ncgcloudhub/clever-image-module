@@ -1,5 +1,9 @@
 <!-- Top Bar -->
-<header class="h-20 glass sticky top-0 z-40 px-10 border-b border-white/5 flex items-center justify-between">
+<header class="h-16 lg:h-20 glass sticky top-0 z-40 px-4 lg:px-10 border-b border-white/5 flex items-center justify-between gap-3">
+<!-- Mobile hamburger -->
+<button onclick="toggleMobileSidebar()" class="lg:hidden p-2 -ml-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors flex-shrink-0">
+    <span class="material-symbols-outlined">menu</span>
+</button>
 <div class="flex-1 max-w-xl">
 
 </div>
