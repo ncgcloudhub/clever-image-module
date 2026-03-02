@@ -769,7 +769,11 @@
         {{-- Image preview --}}
         <div id="miniRefPreview" class="hidden mb-2">
             <div class="relative inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                <img id="miniRefThumb" src="" class="w-7 h-7 rounded object-cover">
+                <img id="miniRefThumb"
+                     src=""
+                     class="w-7 h-7 rounded object-cover cursor-zoom-in"
+                     title="Open image"
+                     onclick="if (this.src) openLightbox(this.src)">
                 <span class="text-[10px] text-primary font-medium">Reference image</span>
                 <button onclick="removeRef()" class="size-4 rounded-full bg-white/10 hover:bg-red-500/50 text-white flex items-center justify-center ml-1">
                     <span class="material-symbols-outlined text-[10px]">close</span>
@@ -1102,7 +1106,13 @@ function renderMiniMessages() {
 
 function buildMiniMsgHTML(msg) {
     if (msg.role === 'user') {
-        const thumbHTML = msg.thumb ? `<img src="${esc(msg.thumb)}" class="w-10 h-10 rounded-lg object-cover mb-1.5 border border-white/10">` : '';
+        const thumbHTML = msg.thumb
+            ? `<img src="${esc(msg.thumb)}"
+                    data-full="${esc(msg.thumb)}"
+                    onclick="openLightbox(this.dataset.full)"
+                    class="w-10 h-10 rounded-lg object-cover mb-1.5 border border-white/10 cursor-zoom-in"
+                    title="Open image">`
+            : '';
         return `
         <div class="mini-msg-user flex justify-end">
             <div class="mini-bubble px-3 py-2">
