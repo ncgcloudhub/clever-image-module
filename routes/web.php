@@ -12,6 +12,7 @@ use App\Http\Controllers\UserBalanceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BillingPageController;
 use App\Http\Controllers\ImageGeneratorController;
+use App\Http\Controllers\StatsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,7 +26,7 @@ use App\Http\Controllers\ImageGeneratorController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('dashboard');
 });
 
 // Login route - redirects to OAuth login
@@ -48,10 +49,17 @@ Route::middleware('auth')->get('/dashboard', function () {
 
 // Logout route
 Route::post('/logout', function () {
-    Auth::logout();
+    Auth::guard('web')->logout();
+    session()->forget('aisite_access_token');
     session()->invalidate();
     session()->regenerateToken();
-    return redirect('/');
+
+    $aisiteBaseUrl = config('services.aisite.base_url');
+    if (!empty($aisiteBaseUrl)) {
+        return redirect()->away(rtrim($aisiteBaseUrl, '/') . '/login');
+    }
+
+    return redirect()->route('login');
 })->name('logout');
 
 // Proxy endpoint for dashboard image generation
@@ -138,8 +146,22 @@ Route::middleware('auth')->group(function () {
         ->name('profile.settings');
     Route::post('/api/profile/update', [ProfileController::class, 'update'])
         ->name('api.profile.update');
+    Route::post('/api/profile/password', [ProfileController::class, 'changePassword'])
+        ->name('api.profile.password');
+    Route::get('/api/profile/referrals', [ProfileController::class, 'getReferrals'])
+        ->name('api.profile.referrals');
+    Route::post('/api/profile/referrals', [ProfileController::class, 'createReferral'])
+        ->name('api.profile.referrals.create');
+    Route::delete('/api/profile/referrals/{id}', [ProfileController::class, 'deleteReferral'])
+        ->name('api.profile.referrals.delete');
 
     // Billing page
     Route::get('/billing', [BillingPageController::class, 'index'])
         ->name('billing');
+
+    // Stats page
+    Route::get('/stats', [StatsController::class, 'index'])
+        ->name('stats');
+    Route::get('/api/stats', [StatsController::class, 'getStats'])
+        ->name('api.stats');
 });

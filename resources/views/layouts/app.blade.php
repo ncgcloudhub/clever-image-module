@@ -4,7 +4,10 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta name="csrf-token" content="{{ csrf_token() }}"/>
-<title>@yield('title', 'Clever Creator AI - Premium Dashboard')</title>
+<title>@yield('title', ($siteSettings['title'] ?? 'Clever Creator AI') . ' - Dashboard')</title>
+@if(!empty($siteSettings['favicon']))
+<link rel="icon" type="image/x-icon" href="{{ $siteSettings['favicon'] }}"/>
+@endif
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
@@ -135,6 +138,9 @@
         /* Sidebar nav tooltips: only show when sidebar is collapsed */
         #appSidebar:not(.sidebar-collapsed) nav a[data-tooltip]::after,
         #appSidebar:not(.sidebar-collapsed) nav > div[data-tooltip]::after { display: none; }
+        /* Allow tooltips to escape the sidebar/nav overflow:hidden when collapsed */
+        #appSidebar.sidebar-collapsed,
+        #appSidebar.sidebar-collapsed nav { overflow: visible; }
     </style>
 @stack('styles')
 </head>
@@ -142,23 +148,48 @@
 <div class="flex min-h-screen">
 @include('layouts.sidebar')
 <!-- Main Content -->
-<main id="appMain" class="flex-1 ml-72">
+<main id="appMain" class="flex-1 lg:ml-72">
 @include('layouts.topbar')
-<div class="p-10 space-y-10">
+<div class="p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-10">
 @yield('content')
 </div>
 </main>
 </div>
+
+<!-- Mobile sidebar overlay -->
+<div id="mobileSidebarOverlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onclick="toggleMobileSidebar()"></div>
+
 @stack('modals')
 @stack('scripts')
 <script>
-    // Sidebar toggle
+    // Mobile sidebar toggle
+    function toggleMobileSidebar() {
+        const sidebar = document.getElementById('appSidebar');
+        const overlay = document.getElementById('mobileSidebarOverlay');
+        const isHidden = sidebar.classList.contains('-translate-x-full');
+        sidebar.classList.toggle('-translate-x-full', !isHidden);
+        overlay.classList.toggle('hidden', !isHidden);
+        document.body.style.overflow = isHidden ? 'hidden' : '';
+    }
+
+    // Close mobile sidebar on resize to desktop
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 1024) {
+            const overlay = document.getElementById('mobileSidebarOverlay');
+            if (overlay) overlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    });
+
+    // Sidebar toggle (desktop collapse/expand)
     function toggleSidebar() {
         const sidebar = document.getElementById('appSidebar');
         const main = document.getElementById('appMain');
         const icon = document.getElementById('sidebarToggleIcon');
         const isNowCollapsed = sidebar.classList.toggle('sidebar-collapsed');
-        main.style.marginLeft = isNowCollapsed ? '4.5rem' : '';
+        if (window.innerWidth >= 1024) {
+            main.style.marginLeft = isNowCollapsed ? '4.5rem' : '';
+        }
         if (icon) icon.textContent = isNowCollapsed ? 'chevron_right' : 'chevron_left';
     }
 

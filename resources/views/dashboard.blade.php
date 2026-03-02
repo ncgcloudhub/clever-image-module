@@ -13,36 +13,59 @@
 </div>
 </section>
 
-<!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="glass p-6 rounded-2xl flex items-center justify-between border-l-4 border-l-primary hover:translate-y-[-4px] transition-transform">
-<div>
-<p class="text-sm text-slate-400 font-medium mb-1">Images Generated</p>
-<p class="text-3xl font-black text-white">342</p>
-</div>
-<div class="p-3 bg-primary/10 rounded-xl text-primary">
-<span class="material-symbols-outlined text-3xl">image</span>
-</div>
-</div>
-<div class="glass p-6 rounded-2xl flex items-center justify-between border-l-4 border-l-secondary hover:translate-y-[-4px] transition-transform">
-<div>
-<p class="text-sm text-slate-400 font-medium mb-1">Available Tokens</p>
-<p class="text-3xl font-black text-white">178</p>
-</div>
-<div class="p-3 bg-secondary/10 rounded-xl text-secondary">
-<span class="material-symbols-outlined text-3xl">toll</span>
-</div>
-</div>
-<div class="glass p-6 rounded-2xl flex items-center justify-between border-l-4 border-l-emerald-500 hover:translate-y-[-4px] transition-transform">
-<div>
-<p class="text-sm text-slate-400 font-medium mb-1">Total Likes</p>
-<p class="text-3xl font-black text-white">1.2k</p>
-</div>
-<div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-500">
-<span class="material-symbols-outlined text-3xl">favorite</span>
-</div>
-</div>
-</div>
+<!-- Live API Stats (below welcome card) -->
+<section class="glass rounded-2xl p-5 border border-white/10">
+    <div class="flex items-center justify-between gap-3 mb-4">
+        <p class="text-sm font-bold text-white">Live Account Snapshot</p>
+        <span id="dashboardLiveStatsStatus" class="text-[10px] text-slate-500">Loading...</span>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="group rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/25 p-4 hover:translate-y-[-2px] transition-all">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-300 font-semibold">Total Images</p>
+                    <p id="dashboard-live-total-images" class="text-2xl font-black text-white mt-1">--</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-primary/20 text-primary border border-primary/30">
+                    <span class="material-symbols-outlined text-lg">image</span>
+                </div>
+            </div>
+        </div>
+        <div class="group rounded-2xl bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-400/25 p-4 hover:translate-y-[-2px] transition-all">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-300 font-semibold">Credits Used</p>
+                    <p id="dashboard-live-credits-used" class="text-2xl font-black text-white mt-1">--</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-300/30">
+                    <span class="material-symbols-outlined text-lg">local_fire_department</span>
+                </div>
+            </div>
+        </div>
+        <div class="group rounded-2xl bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-400/25 p-4 hover:translate-y-[-2px] transition-all">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-300 font-semibold">Credits Left</p>
+                    <p id="dashboard-live-credits-left" class="text-2xl font-black text-white mt-1">--</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-300/30">
+                    <span class="material-symbols-outlined text-lg">payments</span>
+                </div>
+            </div>
+        </div>
+        <div class="group rounded-2xl bg-gradient-to-br from-secondary/25 via-secondary/10 to-transparent border border-secondary/25 p-4 hover:translate-y-[-2px] transition-all">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-300 font-semibold">Tokens Left</p>
+                    <p id="dashboard-live-tokens-left" class="text-2xl font-black text-white mt-1">--</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-secondary/20 text-secondary border border-secondary/30">
+                    <span class="material-symbols-outlined text-lg">toll</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- Quick Start Prompt -->
 <section class="glass p-8 rounded-3xl border border-primary/20 bg-gradient-to-b from-white/[0.02] to-transparent">
@@ -390,6 +413,52 @@ function resetQuickStart() {
     document.getElementById('quickPrompt').focus();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// ── Live stats under welcome card ──────────────────────────────
+(function loadDashboardLiveStats() {
+    const statusEl      = document.getElementById('dashboardLiveStatsStatus');
+    const totalImagesEl = document.getElementById('dashboard-live-total-images');
+    const creditsUsedEl = document.getElementById('dashboard-live-credits-used');
+    const creditsLeftEl = document.getElementById('dashboard-live-credits-left');
+    const tokensLeftEl  = document.getElementById('dashboard-live-tokens-left');
+
+    const setText = (el, value) => {
+        if (!el) return;
+        el.textContent = Number.isFinite(Number(value)) ? Number(value).toLocaleString() : '--';
+    };
+
+    Promise.allSettled([
+        fetch('/api/stats', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        }).then(r => r.ok ? r.json() : null),
+        fetch('/api/user/balance', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        }).then(r => r.ok ? r.json() : null),
+    ])
+    .then(([statsRes, balanceRes]) => {
+        const statsJson   = statsRes.status === 'fulfilled' ? statsRes.value : null;
+        const balanceJson = balanceRes.status === 'fulfilled' ? balanceRes.value : null;
+
+        const s = statsJson?.data ?? statsJson ?? {};
+        const b = balanceJson?.data ?? {};
+
+        setText(totalImagesEl, s.total_images ?? s.images_total ?? s.images_count);
+        setText(creditsUsedEl, s.credits_used);
+        setText(creditsLeftEl, b.credits_left ?? s.credits_left ?? s.credits_remaining);
+        setText(tokensLeftEl, b.tokens_left);
+
+        if (statusEl) statusEl.textContent = 'Updated';
+    })
+    .catch(() => {
+        if (statusEl) statusEl.textContent = 'Unavailable';
+    });
+})();
 
 // ── Recent Generations ────────────────────────────────────────
 (function loadRecentGenerations() {

@@ -4,15 +4,27 @@
 
 @push('styles')
 <style>
-    /* ── Kill default padding ─────────────────────────── */
-    #appMain > div.p-10 { padding: 0 !important; }
+    /* ── Make this page fully viewport-fitted (no page scroll) ───────────── */
+    #appMain {
+        height: 100dvh;
+        overflow: hidden;
+    }
+    #appMain > div {
+        padding: 0 !important;
+        height: calc(100dvh - 4rem); /* mobile topbar: h-16 */
+        overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+        #appMain > div { height: calc(100dvh - 5rem); } /* desktop topbar: h-20 */
+    }
 
     /* ── Root layout ──────────────────────────────────── */
     #genWrap {
         display: flex;
         width: 100%;
-        height: calc(100vh - 5rem);
+        height: 100%;
         overflow: hidden;
+        min-height: 0;
     }
 
     /* ── Settings panel (left) ───────────────────────── */
@@ -328,7 +340,7 @@
     }
     #genMainImage {
         max-width: min(600px, 80%);
-        max-height: 72vh;
+        max-height: min(72vh, calc(100% - 3rem));
         border-radius: 1.25rem;
         box-shadow: 0 0 0 1px rgba(255,255,255,0.07), 0 32px 80px rgba(0,0,0,0.6);
         object-fit: contain;
@@ -524,6 +536,105 @@
         transition: background 0.1s;
     }
     .ac-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+
+    /* ── Tablet fit ───────────────────────────────────── */
+    @media (min-width: 640px) and (max-width: 1023px) {
+        #genSettings { width: 280px; }
+        #genStrip { width: 62px; }
+    }
+
+    /* ── Mobile fit (show preview + settings on one screen) ───────────────── */
+    @media (max-width: 639px) {
+        #genWrap {
+            flex-direction: column;
+            height: 100%;
+        }
+
+        /* Preview section first so users always see output area immediately */
+        #genStage {
+            order: 1;
+            flex: 0 0 42%;
+            min-height: 42%;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        #genSettings {
+            order: 2;
+            width: 100%;
+            flex: 1 1 auto;
+            min-height: 0;
+            border-right: none;
+            border-top: none;
+        }
+        #genStrip { display: none; }
+
+        /* Compact stage UI */
+        #genToolbar {
+            top: 0.5rem;
+            left: 0.5rem;
+            right: 0.5rem;
+            padding: 0.4rem 0.625rem;
+            gap: 0.4rem;
+            font-size: 0.65rem;
+            overflow: hidden;
+        }
+        #tbModelLabel {
+            max-width: 45vw;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #genImageContainer { padding: 2.75rem 0.5rem 0.5rem; }
+        #genMainImage {
+            max-width: 96%;
+            max-height: calc(100% - 3.5rem);
+        }
+        #genImageActions {
+            opacity: 1;
+            bottom: 0.5rem;
+            gap: 0.375rem;
+        }
+        .img-action-btn {
+            padding: 0.35rem 0.625rem;
+            font-size: 0.68rem;
+        }
+        #genMultiGrid {
+            padding: 2.75rem 0.5rem 0.75rem;
+            gap: 0.5rem;
+        }
+        .gen-grid-img {
+            max-width: 42vw;
+            max-height: 26vh;
+        }
+
+        /* Compact settings controls */
+        .settings-section {
+            padding: 0.75rem;
+        }
+        .settings-label {
+            margin-bottom: 0.45rem;
+            font-size: 0.62rem;
+        }
+        .gen-select, .gen-input, .gen-textarea {
+            font-size: 0.76rem;
+            padding: 0.45rem 0.625rem;
+        }
+        .gen-textarea {
+            min-height: 64px;
+            max-height: 96px;
+        }
+        #resolutionGrid {
+            gap: 0.3rem;
+        }
+        .res-btn {
+            font-size: 0.6rem;
+            padding: 0.32rem 0.2rem;
+        }
+        #genBtn {
+            padding: 0.65rem;
+            font-size: 0.82rem;
+            border-radius: 0.75rem;
+        }
+    }
 </style>
 @endpush
 

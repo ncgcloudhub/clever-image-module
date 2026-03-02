@@ -1,22 +1,37 @@
 <!-- Sidebar -->
-<aside id="appSidebar" class="w-72 glass border-r border-white/5 flex flex-col fixed h-screen z-50 overflow-hidden">
+<aside id="appSidebar" class="w-72 glass border-r border-white/5 flex flex-col fixed h-screen z-50 overflow-hidden -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out">
 
 <!-- Logo -->
 <div class="sidebar-logo p-5 flex items-center gap-3 flex-shrink-0 relative">
-    {{-- Bolt icon — also acts as expand button when sidebar is collapsed --}}
+    {{-- Logo — also acts as expand button when sidebar is collapsed --}}
     <button onclick="toggleSidebarIfCollapsed()" data-tooltip="Expand sidebar" data-tooltip-pos="right"
         id="sidebarLogoBtn"
-        class="size-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white flex-shrink-0 transition-shadow hover:shadow-lg hover:shadow-primary/20">
-        <span class="material-symbols-outlined font-bold">bolt</span>
+        class="size-10 rounded-lg flex-shrink-0 overflow-hidden transition-shadow hover:shadow-lg hover:shadow-primary/20">
+        @if(!empty($siteSettings['logos']['header_dark']))
+            <img src="{{ $siteSettings['logos']['header_dark'] }}" alt="{{ $siteSettings['title'] ?? 'Logo' }}" class="w-full h-full object-contain"/>
+        @elseif(!empty($siteSettings['logos']['header_light']))
+            <img src="{{ $siteSettings['logos']['header_light'] }}" alt="{{ $siteSettings['title'] ?? 'Logo' }}" class="w-full h-full object-contain"/>
+        @else
+            <div class="w-full h-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white">
+                <span class="material-symbols-outlined font-bold">bolt</span>
+            </div>
+        @endif
     </button>
     <div class="sidebar-label overflow-hidden">
-        <h1 class="text-lg font-bold tracking-tight text-white whitespace-nowrap">Clever Creator</h1>
+        <h1 class="text-lg font-bold tracking-tight text-white whitespace-nowrap">{{ $siteSettings['title'] ?? 'Clever Creator' }}</h1>
         <p class="text-[10px] uppercase tracking-widest text-primary font-semibold whitespace-nowrap">Premium AI Suite</p>
     </div>
-    <button onclick="toggleSidebar()" data-tooltip="Collapse sidebar" data-tooltip-pos="right"
-        class="sidebar-toggle-btn ml-auto flex-shrink-0 size-8 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-center">
-        <span id="sidebarToggleIcon" class="material-symbols-outlined text-sm transition-transform duration-300">chevron_left</span>
-    </button>
+    <div class="ml-auto flex-shrink-0 flex items-center">
+        <!-- Mobile: close sidebar -->
+        <button onclick="toggleMobileSidebar()" class="lg:hidden size-8 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-colors flex items-center justify-center">
+            <span class="material-symbols-outlined text-sm">close</span>
+        </button>
+        <!-- Desktop: collapse sidebar -->
+        <button onclick="toggleSidebar()" data-tooltip="Collapse sidebar" data-tooltip-pos="right"
+            class="sidebar-toggle-btn hidden lg:flex size-8 rounded-lg text-slate-500 hover:text-white hover:bg-white/5 transition-colors items-center justify-center">
+            <span id="sidebarToggleIcon" class="material-symbols-outlined text-sm transition-transform duration-300">chevron_left</span>
+        </button>
+    </div>
 </div>
 
 <!-- Nav -->
@@ -69,10 +84,12 @@
         <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Account</p>
     </div>
 
-    <div data-tooltip="Settings" data-tooltip-pos="right" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
-        <span class="material-symbols-outlined flex-shrink-0">settings</span>
-        <span class="sidebar-label text-sm font-medium whitespace-nowrap">Settings</span>
-    </div>
+    <a href="{{ route('stats') }}"
+       data-tooltip="Image Stats" data-tooltip-pos="right"
+       class="{{ request()->routeIs('stats') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('stats') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
+        <span class="material-symbols-outlined flex-shrink-0">bar_chart</span>
+        <span class="sidebar-label text-sm font-medium whitespace-nowrap">Stats</span>
+    </a>
     <a href="https://clevercreator.ai/contact-us" target="_blank" data-tooltip="Help Center" data-tooltip-pos="right" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
         <span class="material-symbols-outlined flex-shrink-0">help</span>
         <span class="sidebar-label text-sm font-medium whitespace-nowrap">Help Center</span>
