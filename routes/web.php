@@ -26,7 +26,7 @@ use App\Http\Controllers\StatsController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('dashboard');
 });
 
 // Login route - redirects to OAuth login
@@ -49,10 +49,17 @@ Route::middleware('auth')->get('/dashboard', function () {
 
 // Logout route
 Route::post('/logout', function () {
-    Auth::logout();
+    Auth::guard('web')->logout();
+    session()->forget('aisite_access_token');
     session()->invalidate();
     session()->regenerateToken();
-    return redirect('/');
+
+    $aisiteBaseUrl = config('services.aisite.base_url');
+    if (!empty($aisiteBaseUrl)) {
+        return redirect()->away(rtrim($aisiteBaseUrl, '/') . '/login');
+    }
+
+    return redirect()->route('login');
 })->name('logout');
 
 // Proxy endpoint for dashboard image generation
