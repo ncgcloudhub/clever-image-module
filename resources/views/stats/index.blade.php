@@ -8,13 +8,13 @@
 
 @section('content')
 
-<div class="space-y-8">
+<div class="space-y-6 sm:space-y-8 overflow-x-hidden">
 
     {{-- Page header --}}
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-white">Image Statistics</h1>
-            <p class="text-sm text-slate-400 mt-1">Your image generation activity, model usage, and credit history.</p>
+    <div class="flex flex-wrap items-start sm:items-center justify-between gap-3">
+        <div class="min-w-0">
+            <h1 class="text-xl sm:text-2xl font-bold text-white">Image Statistics</h1>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">Your image generation activity, model usage, and credit history.</p>
         </div>
         <button id="refreshStatsBtn"
             data-tooltip="Refresh stats" data-tooltip-pos="left"
@@ -28,21 +28,21 @@
 
     {{-- ── Summary Cards ── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div class="glass rounded-2xl border border-white/10 p-5 text-center">
+        <div class="glass rounded-2xl border border-white/10 p-4 sm:p-5 text-center">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Total Images</p>
-            <p id="statTotalImages" class="text-2xl font-bold text-white">—</p>
+            <p id="statTotalImages" class="text-xl sm:text-2xl font-bold text-white">—</p>
         </div>
-        <div class="glass rounded-2xl border border-white/10 p-5 text-center">
+        <div class="glass rounded-2xl border border-white/10 p-4 sm:p-5 text-center">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Credits Used</p>
-            <p id="statCreditsUsed" class="text-2xl font-bold text-primary">—</p>
+            <p id="statCreditsUsed" class="text-xl sm:text-2xl font-bold text-primary">—</p>
         </div>
-        <div class="glass rounded-2xl border border-white/10 p-5 text-center">
+        <div class="glass rounded-2xl border border-white/10 p-4 sm:p-5 text-center">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Credits Left</p>
-            <p id="statCreditsLeft" class="text-2xl font-bold text-white">—</p>
+            <p id="statCreditsLeft" class="text-xl sm:text-2xl font-bold text-white">—</p>
         </div>
-        <div class="glass rounded-2xl border border-white/10 p-5 text-center">
+        <div class="glass rounded-2xl border border-white/10 p-4 sm:p-5 text-center">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Models Used</p>
-            <p id="statModelsUsed" class="text-2xl font-bold text-secondary">—</p>
+            <p id="statModelsUsed" class="text-xl sm:text-2xl font-bold text-secondary">—</p>
         </div>
     </div>
 
@@ -50,9 +50,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {{-- Images over time --}}
-        <div class="glass rounded-2xl border border-white/10 p-6">
+        <div class="glass rounded-2xl border border-white/10 p-4 sm:p-6">
             <h2 class="text-sm font-bold text-white mb-4">Images Generated Over Time</h2>
-            <div id="timelineChartWrap" class="relative h-52 flex items-center justify-center">
+            <div id="timelineChartWrap" class="relative h-44 sm:h-52 flex items-center justify-center">
                 <span id="timelineLoading" class="text-slate-500 text-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-base" style="animation:spin 1s linear infinite">progress_activity</span>
                     Loading…
@@ -62,9 +62,9 @@
         </div>
 
         {{-- Model distribution --}}
-        <div class="glass rounded-2xl border border-white/10 p-6">
+        <div class="glass rounded-2xl border border-white/10 p-4 sm:p-6">
             <h2 class="text-sm font-bold text-white mb-4">Images by Model</h2>
-            <div id="modelChartWrap" class="relative h-52 flex items-center justify-center">
+            <div id="modelChartWrap" class="relative h-44 sm:h-52 flex items-center justify-center">
                 <span id="modelLoading" class="text-slate-500 text-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-base" style="animation:spin 1s linear infinite">progress_activity</span>
                     Loading…
@@ -76,7 +76,7 @@
     </div>
 
     {{-- ── Credit usage bar ── --}}
-    <div class="glass rounded-2xl border border-white/10 p-6">
+    <div class="glass rounded-2xl border border-white/10 p-4 sm:p-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-bold text-white">Credit Usage</h2>
             <span id="creditPct" class="text-xs font-bold text-primary">—%</span>
@@ -91,7 +91,7 @@
     </div>
 
     {{-- ── Recent activity table ── --}}
-    <div class="glass rounded-2xl border border-white/10 p-6">
+    <div class="glass rounded-2xl border border-white/10 p-4 sm:p-6">
         <h2 class="text-sm font-bold text-white mb-4">Recent Image Activity</h2>
         <div id="recentTableWrap">
             <div id="recentLoading" class="flex items-center justify-center py-8 text-slate-500 text-sm gap-2">
@@ -99,7 +99,7 @@
                 Loading…
             </div>
             <div id="recentTableInner" class="hidden overflow-x-auto">
-                <table class="w-full text-sm">
+                <table class="w-full text-xs sm:text-sm min-w-[520px]">
                     <thead>
                         <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-white/5">
                             <th class="text-left pb-3 pr-4">Image</th>
@@ -128,6 +128,7 @@
 @endphp
 
 document.addEventListener('DOMContentLoaded', function () {
+    const isMobile = window.matchMedia('(max-width: 639px)').matches;
 
     const CHART_COLORS = [
         '#13a4ec','#8b5cf6','#10b981','#f59e0b','#ef4444',
@@ -245,8 +246,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 cutout: '65%',
                 plugins: {
                     legend: {
-                        position: 'right',
-                        labels: { boxWidth: 10, padding: 12, font: { size: 11 } },
+                        position: isMobile ? 'bottom' : 'right',
+                        labels: { boxWidth: 10, padding: isMobile ? 10 : 12, font: { size: isMobile ? 10 : 11 } },
                     },
                 },
             },
