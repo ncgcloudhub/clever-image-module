@@ -4,6 +4,46 @@
 
 @push('styles')
 <style>
+    /* ── Page-level viewport fit (no page scroll) ─────────────────────────── */
+    #appMain {
+        height: 100dvh;
+        overflow: hidden;
+    }
+    #appMain > div {
+        padding: 0 !important;
+        height: calc(100dvh - 4rem); /* mobile topbar: h-16 */
+        overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+        #appMain > div { height: calc(100dvh - 5rem); } /* desktop topbar: h-20 */
+    }
+
+    /* Keep directory page usable inside fixed viewport */
+    #directoryView {
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem;
+    }
+    @media (min-width: 640px) {
+        #directoryView { padding: 1.5rem; }
+    }
+    @media (min-width: 1024px) {
+        #directoryView { padding: 2rem 2.5rem; }
+    }
+
+    /* Tool interface should use full available height without negative bleed */
+    #toolInterfaceView {
+        margin: 0 !important;
+        height: 100%;
+        overflow: hidden;
+    }
+    #toolInterfaceView > div {
+        height: 100%;
+        min-height: 0 !important;
+        overflow: hidden;
+    }
+
     .view-toggle button.active {
         background: rgba(19, 164, 236, 0.2);
         color: #13a4ec;
@@ -331,6 +371,39 @@
     select option:hover {
         background-color: rgba(19, 164, 236, 0.25);
         color: #13a4ec;
+    }
+
+    /* ── Mobile fit: preview + controls visible together ──────────────────── */
+    @media (max-width: 1023px) {
+        #toolInterfaceView > div {
+            display: flex;
+            flex-direction: column;
+        }
+        #toolInterfaceView section:first-child {
+            order: 2;
+            width: 100% !important;
+            max-height: none !important;
+            min-height: 0;
+            flex: 1 1 auto;
+        }
+        #previewRightSection {
+            order: 1;
+            flex: 0 0 40%;
+            min-height: 40% !important;
+            padding: 0.75rem !important;
+            overflow-y: auto;
+        }
+        #previewContent {
+            min-height: 100% !important;
+        }
+        #previewControls {
+            top: 0.5rem !important;
+            right: 0.5rem !important;
+        }
+        #regeneratedSection {
+            width: 100% !important;
+            padding: 0.5rem !important;
+        }
     }
 </style>
 @endpush
