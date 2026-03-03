@@ -1146,15 +1146,11 @@ function appendMiniMessage(msg) {
 }
 
 function appendMiniError(msg) {
-    const el  = document.getElementById('minichatMessages');
-    const div = document.createElement('div');
-    div.className = 'flex justify-center';
-    div.innerHTML = `
-        <div class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px]">
-            <span class="material-symbols-outlined text-xs">error</span>${esc(msg)}
-        </div>`;
-    el.appendChild(div);
-    el.scrollTop = el.scrollHeight;
+    if (window.showApiErrorToast) {
+        window.showApiErrorToast({ message: msg });
+    } else if (window.appToast) {
+        window.appToast(msg, 'error');
+    }
 }
 
 // Typing indicator

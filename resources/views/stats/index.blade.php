@@ -23,9 +23,6 @@
         </button>
     </div>
 
-    {{-- Error banner --}}
-    <div id="statsError" class="hidden rounded-xl px-4 py-3 text-sm font-medium bg-red-500/10 border border-red-500/20 text-red-400"></div>
-
     {{-- ── Summary Cards ── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="glass rounded-2xl border border-white/10 p-4 sm:p-5 text-center">
@@ -153,9 +150,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showError(msg) {
-        const el = document.getElementById('statsError');
-        el.textContent = msg;
-        el.classList.remove('hidden');
+        if (window.showApiErrorToast) {
+            window.showApiErrorToast({ message: msg });
+        } else if (window.appToast) {
+            window.appToast(msg, 'error');
+        }
     }
 
     // ── Credit bar ───────────────────────────────────────────────────────────
@@ -343,8 +342,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Refresh button
     document.getElementById('refreshStatsBtn').addEventListener('click', function () {
-        // Reset UI
-        document.getElementById('statsError').classList.add('hidden');
         location.reload();
     });
 

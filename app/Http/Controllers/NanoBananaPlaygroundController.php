@@ -9,6 +9,24 @@ use Illuminate\Support\Facades\Log;
 
 class NanoBananaPlaygroundController extends Controller
 {
+    private function providerError(\Throwable $e, string $fallback)
+    {
+        if ($e instanceof \GuzzleHttp\Exception\ClientException && $e->hasResponse()) {
+            $status = $e->getResponse()->getStatusCode();
+            $body   = (string) $e->getResponse()->getBody();
+            $json   = json_decode($body, true);
+
+            if (is_array($json)) {
+                return response()->json($json, $status);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'error'   => $fallback,
+        ], 500);
+    }
+
     /**
      * Canvas-style playground page.
      */
@@ -122,7 +140,7 @@ class NanoBananaPlaygroundController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('Playground chat proxy error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->providerError($e, 'Chat request failed. Please try again.');
         }
     }
 
@@ -147,7 +165,7 @@ class NanoBananaPlaygroundController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('Playground getSessions proxy error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->providerError($e, 'Unable to load sessions right now.');
         }
     }
 
@@ -174,7 +192,7 @@ class NanoBananaPlaygroundController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('Playground saveSession proxy error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->providerError($e, 'Unable to save session right now.');
         }
     }
 
@@ -199,7 +217,7 @@ class NanoBananaPlaygroundController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('Playground getSession proxy error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->providerError($e, 'Unable to load this session right now.');
         }
     }
 
@@ -224,7 +242,7 @@ class NanoBananaPlaygroundController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('Playground deleteSession proxy error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->providerError($e, 'Unable to delete this session right now.');
         }
     }
 }

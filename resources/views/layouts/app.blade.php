@@ -141,6 +141,80 @@
         /* Allow tooltips to escape the sidebar/nav overflow:hidden when collapsed */
         #appSidebar.sidebar-collapsed,
         #appSidebar.sidebar-collapsed nav { overflow: visible; }
+        /* ── Global Toast ── */
+        #appToastStack {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.625rem;
+            z-index: 10050;
+            width: min(92vw, 380px);
+            pointer-events: none;
+        }
+        .app-toast {
+            pointer-events: auto;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.625rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(6, 10, 20, 0.96);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #e2e8f0;
+            padding: 0.75rem 0.875rem;
+            box-shadow: 0 12px 34px rgba(0, 0, 0, 0.45);
+            animation: toastIn 180ms ease-out;
+        }
+        .app-toast--error { border-color: rgba(239, 68, 68, 0.35); }
+        .app-toast--success { border-color: rgba(16, 185, 129, 0.35); }
+        .app-toast__icon {
+            font-size: 1rem;
+            line-height: 1;
+            margin-top: 1px;
+            color: #13a4ec;
+        }
+        .app-toast--error .app-toast__icon { color: #f87171; }
+        .app-toast--success .app-toast__icon { color: #34d399; }
+        .app-toast__msg {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            line-height: 1.4;
+            flex: 1;
+            word-break: break-word;
+        }
+        .app-toast__close {
+            border: 0;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+            margin-top: 2px;
+        }
+        .app-toast__close:hover { color: #e2e8f0; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @media (max-width: 640px) {
+            #appToastStack {
+                top: calc(4.5rem + env(safe-area-inset-top, 0px));
+                right: 0.75rem;
+                left: 0.75rem;
+                width: auto;
+            }
+            .app-toast {
+                padding: 0.6875rem 0.75rem;
+                border-radius: 0.6875rem;
+            }
+            .app-toast__msg {
+                font-size: 0.78rem;
+                line-height: 1.35;
+            }
+        }
     </style>
 @stack('styles')
 </head>
@@ -158,10 +232,147 @@
 
 <!-- Mobile sidebar overlay -->
 <div id="mobileSidebarOverlay" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden" onclick="toggleMobileSidebar()"></div>
+<div id="appToastStack" aria-live="polite" aria-atomic="true"></div>
 
 @stack('modals')
 @stack('scripts')
 <script>
+    (function initGlobalApiToasts() {
+        if (window.__appToastInitDone) return;
+        window.__appToastInitDone = true;
+
+        const dedupeWindowMs = 4000;
+        const recentMessages = new Map();
+
+        function nowMs() {
+            return Date.now();
+        }
+
+        function cleanupRecentMessages() {
+            const cutoff = nowMs() - dedupeWindowMs;
+            recentMessages.forEach((ts, key) => {
+                if (ts < cutoff) recentMessages.delete(key);
+            });
+        }
+
+        function isLikelyLowCreditMessage(message) {
+            return /insufficient|no credits?|credit balance|low credit|not enough credits?/i.test(String(message || ''));
+        }
+
+        function normalizeErrorMessage(message, status) {
+            if (isLikelyLowCreditMessage(message)) {
+                return 'Low credit balance. Please recharge your credits and try again.';
+            }
+            if (message) return String(message);
+            if (status === 401) return 'Your session expired. Please log in again.';
+            if (status === 403) return 'You are not allowed to perform this action.';
+            if (status === 429) return 'Too many requests. Please wait a moment and retry.';
+            return 'Something went wrong while contacting the API.';
+        }
+
+        function extractApiErrorMessage(payload) {
+            if (!payload) return '';
+            if (typeof payload === 'string') return payload;
+            if (typeof payload.message === 'string' && payload.message.trim()) return payload.message.trim();
+            if (typeof payload.error === 'string' && payload.error.trim()) return payload.error.trim();
+            if (payload.errors && typeof payload.errors === 'object') {
+                const firstKey = Object.keys(payload.errors)[0];
+                const firstVal = firstKey ? payload.errors[firstKey] : null;
+                if (Array.isArray(firstVal) && firstVal[0]) return String(firstVal[0]);
+                if (typeof firstVal === 'string') return firstVal;
+            }
+            return '';
+        }
+
+        function isHandledApiRequest(input) {
+            try {
+                const raw = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+                if (!raw) return false;
+                const parsed = new URL(raw, window.location.origin);
+                if (parsed.origin !== window.location.origin) return false;
+                const path = parsed.pathname;
+                return path.startsWith('/api/')
+                    || path.startsWith('/playground/api/')
+                    || path.startsWith('/image-generator/')
+                    || path === '/dashboard/image';
+            } catch (e) {
+                return false;
+            }
+        }
+
+        window.appToast = function appToast(message, type = 'error', ttl = 4200) {
+            const text = String(message || '').trim();
+            if (!text) return;
+
+            cleanupRecentMessages();
+            const dedupeKey = `${type}:${text.toLowerCase()}`;
+            if (recentMessages.has(dedupeKey)) return;
+            recentMessages.set(dedupeKey, nowMs());
+
+            const stack = document.getElementById('appToastStack');
+            if (!stack) return;
+
+            const toast = document.createElement('div');
+            toast.className = `app-toast app-toast--${type}`;
+            toast.innerHTML = `
+                <span class="material-symbols-outlined app-toast__icon">${type === 'success' ? 'check_circle' : 'error'}</span>
+                <div class="app-toast__msg"></div>
+                <button type="button" class="app-toast__close" aria-label="Dismiss">
+                    <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                </button>
+            `;
+            toast.querySelector('.app-toast__msg').textContent = text;
+            stack.appendChild(toast);
+
+            const remove = () => {
+                if (toast.parentNode) toast.parentNode.removeChild(toast);
+            };
+
+            toast.querySelector('.app-toast__close').addEventListener('click', remove);
+            window.setTimeout(remove, ttl);
+        };
+
+        window.showApiErrorToast = function showApiErrorToast(payload, status = null, fallback = '') {
+            const extracted = extractApiErrorMessage(payload);
+            const message = normalizeErrorMessage(extracted || fallback, status);
+            window.appToast(message, 'error');
+            return message;
+        };
+
+        const nativeFetch = window.fetch.bind(window);
+        window.fetch = async function patchedFetch(input, init) {
+            const shouldHandle = isHandledApiRequest(input);
+            try {
+                const response = await nativeFetch(input, init);
+
+                if (!shouldHandle) return response;
+
+                let parsedPayload = null;
+                try {
+                    parsedPayload = await response.clone().json();
+                } catch (e) {
+                    parsedPayload = null;
+                }
+
+                if (!response.ok) {
+                    window.showApiErrorToast(parsedPayload, response.status, `Request failed (${response.status})`);
+                    return response;
+                }
+
+                if (parsedPayload && parsedPayload.success === false) {
+                    window.showApiErrorToast(parsedPayload, response.status, 'The request failed.');
+                }
+
+                return response;
+            } catch (error) {
+                if (shouldHandle) {
+                    window.showApiErrorToast(error, null, 'Network error. Please check your connection.');
+                }
+                throw error;
+            }
+        };
+    })();
+
     // Mobile sidebar toggle
     function toggleMobileSidebar() {
         const sidebar = document.getElementById('appSidebar');
