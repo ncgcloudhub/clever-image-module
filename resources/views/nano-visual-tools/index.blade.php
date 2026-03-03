@@ -1385,13 +1385,7 @@
                 displayInPreview(data);
             }
         } catch (error) {
-            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-            statusEl.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">error</span>
-                    <span>Error: ${error.message}</span>
-                </div>
-            `;
+            statusEl.classList.add('hidden');
 
             // Reset preview on error
             resetPreview();
@@ -1442,11 +1436,11 @@
             }).catch(() => {
                 // Fallback: copy to clipboard
                 navigator.clipboard.writeText(window.currentImageUrl);
-                alert('Image URL copied to clipboard!');
+                if (window.appToast) window.appToast('Image URL copied to clipboard.', 'success');
             });
         } else if (window.currentImageUrl) {
             navigator.clipboard.writeText(window.currentImageUrl);
-            alert('Image URL copied to clipboard!');
+            if (window.appToast) window.appToast('Image URL copied to clipboard.', 'success');
         }
     }
 
@@ -1509,13 +1503,7 @@
                 closeToolModal();
             }
         } catch (error) {
-            statusEl.className = 'p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400';
-            statusEl.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined">error</span>
-                    <span>Error: ${error.message}</span>
-                </div>
-            `;
+            statusEl.classList.add('hidden');
         } finally {
             btn.disabled = false;
         }
@@ -1716,9 +1704,7 @@
         const statusEl = document.getElementById('regenStatus');
 
         if (!imageId) {
-            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-            statusEl.classList.remove('hidden');
-            statusEl.innerHTML = '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">error</span><span>Image ID not available. Try regenerating after a fresh generation.</span></div>';
+            if (window.appToast) window.appToast('Image ID not available. Try regenerating after a fresh generation.', 'error');
             return;
         }
 
@@ -1812,13 +1798,7 @@
 
         } catch (error) {
             clearRegenSkeletons();
-            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-            statusEl.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">error</span>
-                    <span>Error: ${escapeHtml(error.message)}</span>
-                </div>
-            `;
+            statusEl.classList.add('hidden');
         } finally {
             btn.disabled = false;
             btn.innerHTML = REGEN_BTN_DEFAULT_HTML;
@@ -1928,11 +1908,11 @@
         if (navigator.share) {
             navigator.share({ title: 'Regenerated Image', url }).catch(() => {
                 navigator.clipboard.writeText(url);
-                alert('Image URL copied to clipboard!');
+                if (window.appToast) window.appToast('Image URL copied to clipboard.', 'success');
             });
         } else {
             navigator.clipboard.writeText(url);
-            alert('Image URL copied to clipboard!');
+            if (window.appToast) window.appToast('Image URL copied to clipboard.', 'success');
         }
     }
 

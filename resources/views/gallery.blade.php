@@ -541,9 +541,13 @@ function loadGallery(page) {
     .then(function(res) { return res.json(); })
     .then(function(data) {
         if (!data.success) {
-            document.getElementById('gallery-grid').classList.add('hidden');
-            document.getElementById('gallery-error').classList.remove('hidden');
-            document.getElementById('gallery-error-msg').textContent = data.error || 'Unknown error';
+            if (window.showApiErrorToast) {
+                window.showApiErrorToast(data);
+            } else if (window.appToast) {
+                window.appToast(data.error || data.message || 'Failed to load gallery.', 'error');
+            }
+            document.getElementById('gallery-error').classList.add('hidden');
+            renderGallery([]);
             return;
         }
 
@@ -563,9 +567,13 @@ function loadGallery(page) {
         }
     })
     .catch(function(err) {
-        document.getElementById('gallery-grid').classList.add('hidden');
-        document.getElementById('gallery-error').classList.remove('hidden');
-        document.getElementById('gallery-error-msg').textContent = err.message;
+        if (window.showApiErrorToast) {
+            window.showApiErrorToast({ message: err && err.message ? err.message : 'Failed to load gallery.' });
+        } else if (window.appToast) {
+            window.appToast(err && err.message ? err.message : 'Failed to load gallery.', 'error');
+        }
+        document.getElementById('gallery-error').classList.add('hidden');
+        renderGallery([]);
     });
 }
 

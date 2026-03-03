@@ -153,9 +153,11 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showError(msg) {
-        const el = document.getElementById('statsError');
-        el.textContent = msg;
-        el.classList.remove('hidden');
+        if (window.showApiErrorToast) {
+            window.showApiErrorToast({ message: msg });
+        } else if (window.appToast) {
+            window.appToast(msg, 'error');
+        }
     }
 
     // ── Credit bar ───────────────────────────────────────────────────────────
@@ -343,8 +345,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Refresh button
     document.getElementById('refreshStatsBtn').addEventListener('click', function () {
-        // Reset UI
-        document.getElementById('statsError').classList.add('hidden');
         location.reload();
     });
 
