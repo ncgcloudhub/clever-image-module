@@ -8,6 +8,24 @@ use Illuminate\Support\Facades\Log;
 
 class ImageGeneratorController extends Controller
 {
+    private function providerError(\Throwable $e, string $fallback)
+    {
+        if ($e instanceof \GuzzleHttp\Exception\ClientException && $e->hasResponse()) {
+            $status = $e->getResponse()->getStatusCode();
+            $body   = (string) $e->getResponse()->getBody();
+            $json   = json_decode($body, true);
+
+            if (is_array($json)) {
+                return response()->json($json, $status);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'error'   => $fallback,
+        ], 500);
+    }
+
     private function http(): Client
     {
         return new Client(['timeout' => 180]);
@@ -109,7 +127,7 @@ class ImageGeneratorController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('ImageGenerator generate error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->providerError($e, 'Image generation failed. Please try again.');
         }
     }
 
@@ -130,7 +148,7 @@ class ImageGeneratorController extends Controller
                 ->header('Content-Type', 'application/json');
         } catch (\Throwable $e) {
             Log::error('ImageGenerator provider models error', ['message' => $e->getMessage()]);
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            return $this->providerError($e, 'Failed to load model list. Please try again.');
         }
     }
 
@@ -150,7 +168,8 @@ class ImageGeneratorController extends Controller
             return response($response->getBody()->getContents(), $response->getStatusCode())
                 ->header('Content-Type', 'application/json');
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            Log::error('ImageGenerator autocomplete error', ['message' => $e->getMessage()]);
+            return $this->providerError($e, 'Autocomplete is temporarily unavailable.');
         }
     }
 
@@ -170,7 +189,8 @@ class ImageGeneratorController extends Controller
             return response($response->getBody()->getContents(), $response->getStatusCode())
                 ->header('Content-Type', 'application/json');
         } catch (\Throwable $e) {
-            return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+            Log::error('ImageGenerator prompt history error', ['message' => $e->getMessage()]);
+            return $this->providerError($e, 'Prompt history is temporarily unavailable.');
         }
     }
 }

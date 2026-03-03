@@ -205,7 +205,7 @@
             </div>
             <div class="text-center space-y-2">
                 <p class="text-white font-black text-xl">Generation Failed</p>
-                <p id="quickErrorMsg" class="text-slate-500 text-sm max-w-sm"></p>
+                <p class="text-slate-500 text-sm max-w-sm">Please try again in a moment.</p>
             </div>
             <button onclick="resetQuickStart()" class="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/15 text-white font-bold rounded-xl transition-all border border-white/10">
                 <span class="material-symbols-outlined text-base">refresh</span>
@@ -366,8 +366,12 @@ async function quickGenerate() {
 
     } catch (err) {
         loadingState.classList.add('hidden');
-        document.getElementById('quickErrorMsg').textContent = err.message;
-        errorState.classList.remove('hidden');
+        errorState.classList.add('hidden');
+        if (window.showApiErrorToast) {
+            window.showApiErrorToast({ message: err && err.message ? err.message : 'Image generation failed.' });
+        } else if (window.appToast) {
+            window.appToast(err && err.message ? err.message : 'Image generation failed.', 'error');
+        }
     } finally {
         btn.disabled = false;
         btnText.textContent = 'Generate';

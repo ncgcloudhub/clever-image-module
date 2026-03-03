@@ -1400,12 +1400,11 @@ function cap(s) {
     return String(s).charAt(0).toUpperCase() + String(s).slice(1).replace(/-/g,' ');
 }
 function showError(msg) {
-    // Simple inline toast
-    const t = document.createElement('div');
-    t.style.cssText = 'position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);border-radius:0.75rem;padding:0.625rem 1.25rem;color:#fca5a5;font-size:0.8rem;z-index:999;backdrop-filter:blur(8px);';
-    t.textContent = msg;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 4000);
+    if (window.showApiErrorToast) {
+        window.showApiErrorToast({ message: msg });
+    } else if (window.appToast) {
+        window.appToast(msg, 'error');
+    }
 }
 </script>
 @endpush

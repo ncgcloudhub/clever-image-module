@@ -23,9 +23,6 @@
         </button>
     </div>
 
-    {{-- Error banner --}}
-    <div id="statsError" class="hidden rounded-xl px-4 py-3 text-sm font-medium bg-red-500/10 border border-red-500/20 text-red-400"></div>
-
     {{-- ── Summary Cards ── --}}
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div class="glass rounded-2xl border border-white/10 p-4 sm:p-5 text-center">

@@ -8,6 +8,24 @@ use Illuminate\Support\Facades\Log;
 
 class DashboardImageController extends Controller
 {
+    private function providerError(\Throwable $e, string $fallback)
+    {
+        if ($e instanceof \GuzzleHttp\Exception\ClientException && $e->hasResponse()) {
+            $status = $e->getResponse()->getStatusCode();
+            $body   = (string) $e->getResponse()->getBody();
+            $json   = json_decode($body, true);
+
+            if (is_array($json)) {
+                return response()->json($json, $status);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'error'   => $fallback,
+        ], 500);
+    }
+
     public function generate(Request $request)
     {
         $data = $request->validate([
@@ -58,11 +76,7 @@ class DashboardImageController extends Controller
             Log::error('Dashboard image generation error', [
                 'message' => $e->getMessage(),
             ]);
-
-            return response()->json([
-                'success' => false,
-                'error'   => 'Failed to contact AISITE image API: ' . $e->getMessage(),
-            ], 500);
+            return $this->providerError($e, 'Image generation is temporarily unavailable. Please try again.');
         }
     }
 }

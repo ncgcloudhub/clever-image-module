@@ -875,13 +875,15 @@
             renderTools(availableTools);
         } catch (e) {
             container.innerHTML = `
-                <div class="glass p-8 rounded-2xl border border-red-500/20 bg-red-500/5">
-                    <div class="flex items-center gap-3 text-red-400">
-                        <span class="material-symbols-outlined">error</span>
-                        <p>Error: ${e.message}</p>
-                    </div>
+                <div class="glass p-8 rounded-2xl text-center">
+                    <p class="text-slate-400">Unable to load tools right now.</p>
                 </div>
             `;
+            if (window.showApiErrorToast) {
+                window.showApiErrorToast({ message: e && e.message ? e.message : 'Failed to load tools.' });
+            } else if (window.appToast) {
+                window.appToast(e && e.message ? e.message : 'Failed to load tools.', 'error');
+            }
         }
     }
 

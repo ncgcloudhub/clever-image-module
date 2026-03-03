@@ -238,7 +238,7 @@
     <div id="gallery-error" class="hidden glass p-8 rounded-2xl text-center">
         <span class="material-symbols-outlined text-4xl text-red-400 mb-3 block">error</span>
         <p class="text-red-300 font-bold mb-1">Failed to load gallery</p>
-        <p id="gallery-error-msg" class="text-slate-500 text-sm mb-4"></p>
+        <p class="text-slate-500 text-sm mb-4">Please try again in a moment.</p>
         <button onclick="loadGallery(1)" class="text-primary text-sm font-bold hover:underline">Try again</button>
     </div>
 

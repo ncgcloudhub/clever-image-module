@@ -9,6 +9,24 @@ use Illuminate\Support\Facades\Log;
 
 class NanoVisualToolsController extends Controller
 {
+    private function providerError(\Throwable $e, string $fallback)
+    {
+        if ($e instanceof \GuzzleHttp\Exception\ClientException && $e->hasResponse()) {
+            $status = $e->getResponse()->getStatusCode();
+            $body   = (string) $e->getResponse()->getBody();
+            $json   = json_decode($body, true);
+
+            if (is_array($json)) {
+                return response()->json($json, $status);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'error'   => $fallback,
+        ], 500);
+    }
+
     /**
      * Display the Nano Visual Tools page
      */
@@ -68,11 +86,7 @@ class NanoVisualToolsController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to contact AISITE visual tools API: ' . $e->getMessage(),
-            ], 500);
+            return $this->providerError($e, 'Visual tools are temporarily unavailable. Please try again.');
         }
     }
 
@@ -178,11 +192,7 @@ class NanoVisualToolsController extends Controller
                 'message' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to execute visual tool: ' . $e->getMessage(),
-            ], 500);
+            return $this->providerError($e, 'Failed to execute visual tool. Please try again.');
         }
     }
 
@@ -238,11 +248,7 @@ class NanoVisualToolsController extends Controller
             Log::error('Nano Visual Tools images API error', [
                 'message' => $e->getMessage(),
             ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to contact AISITE images API: ' . $e->getMessage(),
-            ], 500);
+            return $this->providerError($e, 'Failed to load tool images. Please try again.');
         }
     }
 
@@ -301,11 +307,7 @@ class NanoVisualToolsController extends Controller
             Log::error('Nano Visual Tools regenerate error', [
                 'message' => $e->getMessage(),
             ]);
-
-            return response()->json([
-                'success' => false,
-                'error' => 'Failed to regenerate image: ' . $e->getMessage(),
-            ], 500);
+            return $this->providerError($e, 'Failed to regenerate image. Please try again.');
         }
     }
 }
