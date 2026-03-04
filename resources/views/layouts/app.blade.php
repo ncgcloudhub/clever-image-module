@@ -300,9 +300,10 @@
             }
         }
 
-        window.appToast = function appToast(message, type = 'error', ttl = 4200) {
+        window.appToast = function appToast(message, type = 'error', ttl = 5000) {
             const text = String(message || '').trim();
             if (!text) return;
+            const toastTtl = Math.max(5000, Number(ttl) || 5000);
 
             cleanupRecentMessages();
             const dedupeKey = `${type}:${text.toLowerCase()}`;
@@ -329,7 +330,7 @@
             };
 
             toast.querySelector('.app-toast__close').addEventListener('click', remove);
-            window.setTimeout(remove, ttl);
+            window.setTimeout(remove, toastTtl);
         };
 
         window.showApiErrorToast = function showApiErrorToast(payload, status = null, fallback = '') {
