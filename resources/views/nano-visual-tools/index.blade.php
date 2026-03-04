@@ -378,6 +378,7 @@
         #toolInterfaceView > div {
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         #toolInterfaceView section:first-child {
             order: 2;
@@ -403,6 +404,46 @@
         #regeneratedSection {
             width: 100% !important;
             padding: 0.5rem !important;
+        }
+
+        /* While generating, the form becomes a bottom drawer and preview stays centered */
+        #toolInterfaceView.mobile-generating #previewRightSection {
+            order: 1;
+            flex: 1 1 auto !important;
+            min-height: 100% !important;
+            padding: 0.75rem !important;
+            overflow: hidden !important;
+        }
+        #toolInterfaceView.mobile-generating #previewContent {
+            min-height: 100% !important;
+            height: 100%;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        #toolInterfaceView.mobile-generating section:first-child {
+            order: 2;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 25;
+            max-height: min(74vh, 620px) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: none;
+            background: rgba(15, 17, 23, 0.95);
+            backdrop-filter: blur(10px);
+            transition: transform 0.28s ease;
+            box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+        }
+        #toolInterfaceView.mobile-generating.mobile-drawer-collapsed section:first-child {
+            transform: translateY(calc(100% - 64px));
+        }
+        #toolInterfaceView.mobile-generating.mobile-drawer-expanded section:first-child {
+            transform: translateY(0);
+        }
+        #toolInterfaceView.mobile-generating #mobileDrawerToggle {
+            display: inline-flex !important;
         }
     }
 </style>
@@ -483,6 +524,16 @@
                     <h2 id="toolInterfaceTitle" class="font-bold text-white text-sm truncate"></h2>
                     <p class="text-[10px] text-slate-500">Configure & Generate</p>
                 </div>
+                <button
+                    id="mobileDrawerToggle"
+                    type="button"
+                    onclick="toggleMobileFormDrawer()"
+                    class="ml-auto hidden items-center gap-1.5 rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white hover:border-primary/40 transition-colors"
+                    aria-label="Toggle form drawer"
+                >
+                    <span class="material-symbols-outlined text-sm" id="mobileDrawerToggleIcon">keyboard_arrow_up</span>
+                    <span id="mobileDrawerToggleText">Open</span>
+                </button>
             </div>
 
             <!-- Form Content - Scrollable -->
@@ -974,6 +1025,7 @@
     }
 
     function backToDirectory() {
+        setMobileGeneratingDrawerState(false);
         document.getElementById('toolInterfaceView').classList.add('hidden');
         document.getElementById('directoryView').classList.remove('hidden');
         document.getElementById('toolInterfaceForm').reset();
@@ -1006,6 +1058,7 @@
     }
 
     function resetPreview() {
+        setMobileGeneratingDrawerState(false);
         exitRegenLayout();
         const previewContent = document.getElementById('previewContent');
         previewContent.innerHTML = `
@@ -1022,6 +1075,46 @@
         document.getElementById('regeneratedGrid').innerHTML = '';
         window.currentImageUrl = null;
         window.currentImageData = null;
+    }
+
+    function isMobileTabletViewport() {
+        return window.matchMedia('(max-width: 1023px)').matches;
+    }
+
+    function updateMobileDrawerToggleUi() {
+        const view = document.getElementById('toolInterfaceView');
+        const icon = document.getElementById('mobileDrawerToggleIcon');
+        const text = document.getElementById('mobileDrawerToggleText');
+        if (!view || !icon || !text) return;
+
+        const expanded = view.classList.contains('mobile-drawer-expanded');
+        icon.textContent = expanded ? 'keyboard_arrow_down' : 'keyboard_arrow_up';
+        text.textContent = expanded ? 'Close' : 'Open';
+    }
+
+    function setMobileGeneratingDrawerState(isGenerating) {
+        const view = document.getElementById('toolInterfaceView');
+        if (!view) return;
+
+        if (!isGenerating || !isMobileTabletViewport()) {
+            view.classList.remove('mobile-generating', 'mobile-drawer-collapsed', 'mobile-drawer-expanded');
+            updateMobileDrawerToggleUi();
+            return;
+        }
+
+        view.classList.add('mobile-generating', 'mobile-drawer-collapsed');
+        view.classList.remove('mobile-drawer-expanded');
+        updateMobileDrawerToggleUi();
+    }
+
+    function toggleMobileFormDrawer() {
+        const view = document.getElementById('toolInterfaceView');
+        if (!view || !view.classList.contains('mobile-generating')) return;
+
+        const isCollapsed = view.classList.contains('mobile-drawer-collapsed');
+        view.classList.toggle('mobile-drawer-collapsed', !isCollapsed);
+        view.classList.toggle('mobile-drawer-expanded', isCollapsed);
+        updateMobileDrawerToggleUi();
     }
 
     function setupInterfaceForm(tool) {
@@ -1326,6 +1419,7 @@
         const previewContent = document.getElementById('previewContent');
 
         btn.disabled = true;
+        setMobileGeneratingDrawerState(true);
         statusEl.className = 'p-3 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs';
         statusEl.classList.remove('hidden');
         statusEl.innerHTML = `
@@ -1392,6 +1486,7 @@
             // Reset preview on error
             resetPreview();
         } finally {
+            setMobileGeneratingDrawerState(false);
             btn.disabled = false;
         }
     });
@@ -1584,6 +1679,9 @@
 
     // Initialize
     loadTools();
+    window.addEventListener('resize', () => {
+        if (!isMobileTabletViewport()) setMobileGeneratingDrawerState(false);
+    });
 
     // ─── Dev / Test Helper ───────────────────────────────────────────────────
     function testRegenerateUI() {
