@@ -901,11 +901,9 @@
             <div id="genImageActions">
                 <button class="img-action-btn" onclick="downloadImage(S.activeImageUrl)">
                     <span class="material-symbols-outlined" style="font-size:14px;">download</span>
-                    Download
                 </button>
                 <button class="img-action-btn" onclick="openLightbox(S.activeImageUrl)">
                     <span class="material-symbols-outlined" style="font-size:14px;">open_in_full</span>
-                    Expand
                 </button>
             </div>
         </div>
@@ -929,7 +927,6 @@
     <img id="lbImage" src="" alt="">
     <button id="lbDownload" onclick="downloadImage(document.getElementById('lbImage').src)">
         <span class="material-symbols-outlined" style="font-size:16px;">download</span>
-        Download
     </button>
 </div>
 @endsection

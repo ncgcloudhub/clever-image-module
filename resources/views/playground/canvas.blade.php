@@ -732,15 +732,15 @@
                 <div id="canvasImageActions">
                     <button onclick="downloadCanvas()"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-medium transition-colors backdrop-blur-sm border border-white/10">
-                        <span class="material-symbols-outlined text-sm">download</span> Download
+                        <span class="material-symbols-outlined text-sm">download</span>
                     </button>
                     <button onclick="useCanvasAsRef()"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary/80 hover:bg-primary text-white text-xs font-medium transition-colors backdrop-blur-sm">
-                        <span class="material-symbols-outlined text-sm">recycling</span> Use as ref
+                        <span class="material-symbols-outlined text-sm">recycling</span>
                     </button>
                     <button onclick="openLightbox(document.getElementById('canvasMainImage').src)"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-medium transition-colors backdrop-blur-sm border border-white/10">
-                        <span class="material-symbols-outlined text-sm">open_in_full</span> Expand
+                        <span class="material-symbols-outlined text-sm">open_in_full</span>
                     </button>
                 </div>
                 </div>{{-- /.relative --}}
