@@ -258,15 +258,15 @@
 
 @section('content')
 <section>
-    <div class="flex justify-between items-end mb-8">
+    <div class="flex items-start justify-between gap-3 mb-5 sm:mb-7">
         <div>
-            <h2 class="text-3xl font-black text-white">Community Gallery</h2>
-            <p class="text-slate-400 text-sm">All AI-generated images from the community</p>
+            <h2 class="text-2xl sm:text-3xl font-black leading-tight text-white">Community Gallery</h2>
+            <p class="text-slate-400 text-xs sm:text-sm leading-snug mt-1">All AI-generated images from the community</p>
         </div>
         <a href="{{ route('nano.visual.tools') }}"
-           class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
-            <span class="material-symbols-outlined">add</span>
-            Create New
+           class="h-11 w-11 sm:h-12 sm:w-12 shrink-0 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold inline-flex items-center justify-center transition-all"
+           aria-label="Create new image">
+            <span class="material-symbols-outlined text-[20px] sm:text-[22px]">add</span>
         </a>
     </div>
 
