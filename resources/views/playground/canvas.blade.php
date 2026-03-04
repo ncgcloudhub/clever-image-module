@@ -121,6 +121,28 @@
         pointer-events: none;
         user-select: none;
     }
+    #canvasGeneratingOverlay {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 0.75rem;
+        background: rgba(8, 10, 14, 0.26);
+        backdrop-filter: blur(1px);
+        z-index: 16;
+        pointer-events: none;
+    }
+    #canvasGeneratingOverlay .canvas-gen-ring {
+        width: 44px;
+        height: 44px;
+        border-radius: 9999px;
+        border: 3px solid rgba(19,164,236,0.22);
+        border-top-color: #13a4ec;
+        animation: canvasGenSpin 0.9s linear infinite;
+    }
+    @keyframes canvasGenSpin { to { transform: rotate(360deg); } }
 
     /* ── Example image cards in empty state ─────────── */
     .canvas-example-card {
@@ -609,6 +631,20 @@
         /* ── Canvas image: allow a bit more width ────────────── */
         #canvasMainImage { max-width: min(80%, 640px); }
     }
+
+    /* Mobile/tablet generation mode: collapse chat drawer + reclaim stage space */
+    @media (max-width: 1023px) {
+        body.mobile-canvas-generating #minichat {
+            max-height: 52px !important;
+        }
+        body.mobile-canvas-generating #canvasImageContainer,
+        body.mobile-canvas-generating #canvasEmptyHint {
+            inset: 0 !important;
+        }
+        body.mobile-canvas-generating #canvasStage {
+            border-bottom: none !important;
+        }
+    }
 </style>
 @endpush
 
@@ -678,6 +714,12 @@
                     <span>Chat panel is bottom-right</span>
                 </div>
             @endif
+        </div>
+
+        {{-- Centered generating state (mobile/tablet drawer mode friendly) --}}
+        <div id="canvasGeneratingOverlay">
+            <div class="canvas-gen-ring"></div>
+            <p class="text-xs text-slate-400">Generating image...</p>
         </div>
 
         {{-- Main canvas image container --}}
@@ -878,6 +920,7 @@ const S = {
     isGenerating:   false,
     minichatOpen:   true,
     activeFlowIdx:  -1,
+    preGenMiniOpen: true,
 };
 const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -1420,10 +1463,39 @@ function setupDragDrop() {
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
 function setMiniGenerating(gen) {
+    applyMobileGeneratingDrawer(gen);
     document.getElementById('miniSendBtn').disabled      = gen;
     document.getElementById('miniSendIcon').textContent  = gen ? 'hourglass_top' : 'arrow_upward';
     if (gen) document.getElementById('miniSendIcon').classList.add('animate-spin');
     else     document.getElementById('miniSendIcon').classList.remove('animate-spin');
+    const overlay = document.getElementById('canvasGeneratingOverlay');
+    if (overlay) overlay.style.display = gen ? 'flex' : 'none';
+}
+
+function isMobileTabletViewport() {
+    return window.matchMedia('(max-width: 1023px)').matches;
+}
+
+function applyMobileGeneratingDrawer(isGenerating) {
+    const panel = document.getElementById('minichat');
+    const icon = document.getElementById('minichatCollapseIcon');
+    if (!panel || !icon) return;
+
+    if (!isGenerating || !isMobileTabletViewport()) {
+        document.body.classList.remove('mobile-canvas-generating');
+        if (isMobileTabletViewport()) {
+            S.minichatOpen = S.preGenMiniOpen;
+            panel.classList.toggle('collapsed', !S.minichatOpen);
+            icon.textContent = S.minichatOpen ? 'expand_more' : 'expand_less';
+        }
+        return;
+    }
+
+    S.preGenMiniOpen = S.minichatOpen;
+    document.body.classList.add('mobile-canvas-generating');
+    S.minichatOpen = false;
+    panel.classList.add('collapsed');
+    icon.textContent = 'expand_less';
 }
 
 function miniResize(el) {
@@ -1434,6 +1506,10 @@ function miniResize(el) {
 function handleMiniKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMiniChat(); }
 }
+
+window.addEventListener('resize', () => {
+    if (!isMobileTabletViewport()) applyMobileGeneratingDrawer(false);
+});
 
 // ── Canvas example prompts ────────────────────────────────────────────────────
 function useExamplePrompt(prompt) {
