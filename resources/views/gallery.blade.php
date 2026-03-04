@@ -177,12 +177,48 @@
         border: 1px solid rgba(255,255,255,0.1);
     }
 
+    /* Compact gallery toolbar */
+    .gallery-search-shell {
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateX(-6px);
+        pointer-events: none;
+        transition: max-width 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+    }
+    .gallery-search-shell.is-open {
+        max-width: 15rem;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+    .gallery-view-btn.active {
+        background: rgba(14, 165, 233, 0.2);
+        color: #7dd3fc;
+        border-color: rgba(14, 165, 233, 0.4);
+    }
+    .gallery-list-card:hover .gallery-list-arrow {
+        transform: translateX(2px);
+        color: #67e8f9;
+    }
+    .gallery-list-arrow {
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
         .image-modal { overflow-y: auto; overflow-x: hidden; align-items: flex-start; }
         .image-modal-content { flex-direction: column; max-width: 95vw; max-height: none; overflow: visible; margin: 0 auto; padding: 1rem; }
         .modal-image-container { min-height: auto; }
         .modal-details { width: 100%; max-height: none; }
+    }
+    @media (min-width: 640px) {
+        .gallery-search-shell {
+            max-width: 18rem;
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
     }
 </style>
 @endpush
@@ -201,18 +237,35 @@
         </a>
     </div>
 
-    <!-- Search Bar -->
-    <div class="mb-6">
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
-            <input type="text" id="gallery-search-input"
-                   placeholder="Search by prompt or model..."
-                   class="w-full glass rounded-xl py-3 pl-12 pr-12 text-white placeholder-slate-500 bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all">
-            <button id="gallery-search-clear" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
-                <span class="material-symbols-outlined text-lg">close</span>
-            </button>
+    <!-- Compact toolbar -->
+    <div class="mb-5">
+        <div class="glass rounded-xl p-2 border border-white/10 bg-white/[0.03]">
+            <div class="flex items-center gap-2">
+                <button id="gallery-search-toggle" type="button" class="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-primary/40 transition-all" aria-label="Toggle search">
+                    <span class="material-symbols-outlined text-[18px]">search</span>
+                </button>
+                <div id="gallery-search-shell" class="gallery-search-shell">
+                    <div class="relative">
+                        <input type="text" id="gallery-search-input"
+                               placeholder="Search prompts, model, or tool..."
+                               class="w-full h-9 rounded-lg py-2 pl-3 pr-9 text-sm text-white placeholder-slate-500 bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all">
+                        <button id="gallery-search-clear" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-base">close</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="ml-auto flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+                    <button id="gallery-grid-view-btn" type="button" class="gallery-view-btn active h-7 w-7 inline-flex items-center justify-center rounded-md border border-transparent text-slate-300 hover:text-white transition-all" aria-label="Grid view">
+                        <span class="material-symbols-outlined text-[16px]">grid_view</span>
+                    </button>
+                    <button id="gallery-list-view-btn" type="button" class="gallery-view-btn h-7 w-7 inline-flex items-center justify-center rounded-md border border-transparent text-slate-300 hover:text-white transition-all" aria-label="List view">
+                        <span class="material-symbols-outlined text-[16px]">view_list</span>
+                    </button>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1.5 px-1">Tip: search by prompt words, model name, or tool.</p>
+            <p id="gallery-search-results" class="hidden text-slate-400 text-xs mt-1.5 px-1"></p>
         </div>
-        <p id="gallery-search-results" class="hidden text-slate-400 text-sm mt-2"></p>
     </div>
 
     <!-- Gallery Grid -->
@@ -356,16 +409,20 @@ let allPagesCache     = null; // all pages combined, null = not fetched yet
 let allPagesFetching  = false;
 let currentIndex      = 0;
 let searchTerm        = '';
+let currentView       = 'grid';
 
 // ============================================================
 //  GALLERY LOADING
 // ============================================================
 function showSkeletons() {
     const grid = document.getElementById('gallery-grid');
+    applyGalleryLayoutClasses();
     grid.innerHTML = '';
     for (let i = 0; i < 8; i++) {
         const div = document.createElement('div');
-        div.className = 'skeleton-card glass rounded-2xl aspect-square animate-pulse bg-white/5';
+        div.className = currentView === 'list'
+            ? 'skeleton-card glass rounded-xl h-24 animate-pulse bg-white/5'
+            : 'skeleton-card glass rounded-2xl aspect-square animate-pulse bg-white/5';
         grid.appendChild(div);
     }
     grid.classList.remove('hidden');
@@ -382,6 +439,7 @@ function formatDate(iso) {
 function renderGallery(images) {
     imagesData = images;   // store for modal use
     const grid = document.getElementById('gallery-grid');
+    applyGalleryLayoutClasses();
     grid.innerHTML = '';
 
     if (!images.length) {
@@ -396,46 +454,101 @@ function renderGallery(images) {
 
     images.forEach(function(image, index) {
         const card = document.createElement('div');
-        card.className = 'group relative rounded-2xl overflow-hidden glass aspect-square cursor-zoom-in hover:ring-2 hover:ring-primary/50 transition-all image-modal-trigger';
+        const isListView = currentView === 'list';
+        card.className = isListView
+            ? 'gallery-list-card group glass rounded-xl border border-white/10 bg-white/[0.03] p-2.5 flex items-center gap-3 cursor-zoom-in hover:border-primary/40 transition-all image-modal-trigger'
+            : 'group relative rounded-2xl overflow-hidden glass aspect-square cursor-zoom-in hover:ring-2 hover:ring-primary/50 transition-all image-modal-trigger';
         card.dataset.index = index;
 
         const img = document.createElement('img');
         img.src        = image.image_url;
         img.alt        = image.prompt || 'Generated image';
-        img.className  = 'w-full h-full object-cover transition-transform duration-500 group-hover:scale-105';
+        img.className  = isListView
+            ? 'h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover flex-shrink-0'
+            : 'w-full h-full object-cover transition-transform duration-500 group-hover:scale-105';
         img.loading    = 'lazy';
 
-        const overlay = document.createElement('div');
-        overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4';
+        if (isListView) {
+            const content = document.createElement('div');
+            content.className = 'min-w-0 flex-1';
 
-        const promptEl = document.createElement('p');
-        promptEl.className  = 'text-white text-xs font-medium line-clamp-2 mb-1';
-        promptEl.textContent = image.prompt || 'No prompt';
+            const promptEl = document.createElement('p');
+            promptEl.className  = 'text-white text-xs sm:text-sm font-medium line-clamp-2';
+            promptEl.textContent = image.prompt || 'No prompt';
 
-        const meta = document.createElement('div');
-        meta.className = 'flex items-center gap-2 text-slate-400 text-[10px]';
+            const meta = document.createElement('div');
+            meta.className = 'mt-1.5 flex items-center gap-2 text-slate-400 text-[11px]';
 
-        if (image.tool) {
-            const badge = document.createElement('span');
-            badge.className  = 'bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold';
-            badge.textContent = image.tool.name;
-            meta.appendChild(badge);
+            if (image.tool) {
+                const badge = document.createElement('span');
+                badge.className  = 'bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold';
+                badge.textContent = image.tool.name;
+                meta.appendChild(badge);
+            }
+            if (image.created_at) {
+                const dateSpan = document.createElement('span');
+                dateSpan.textContent = formatDate(image.created_at);
+                meta.appendChild(dateSpan);
+            }
+
+            const arrow = document.createElement('span');
+            arrow.className = 'gallery-list-arrow material-symbols-outlined text-slate-500 text-lg';
+            arrow.textContent = 'chevron_right';
+
+            content.appendChild(promptEl);
+            content.appendChild(meta);
+            card.appendChild(img);
+            card.appendChild(content);
+            card.appendChild(arrow);
+        } else {
+            const overlay = document.createElement('div');
+            overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4';
+
+            const promptEl = document.createElement('p');
+            promptEl.className  = 'text-white text-xs font-medium line-clamp-2 mb-1';
+            promptEl.textContent = image.prompt || 'No prompt';
+
+            const meta = document.createElement('div');
+            meta.className = 'flex items-center gap-2 text-slate-400 text-[10px]';
+
+            if (image.tool) {
+                const badge = document.createElement('span');
+                badge.className  = 'bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold';
+                badge.textContent = image.tool.name;
+                meta.appendChild(badge);
+            }
+            if (image.created_at) {
+                const dateSpan = document.createElement('span');
+                dateSpan.textContent = formatDate(image.created_at);
+                meta.appendChild(dateSpan);
+            }
+
+            overlay.appendChild(promptEl);
+            overlay.appendChild(meta);
+            card.appendChild(img);
+            card.appendChild(overlay);
         }
-        if (image.created_at) {
-            const dateSpan = document.createElement('span');
-            dateSpan.textContent = formatDate(image.created_at);
-            meta.appendChild(dateSpan);
-        }
-
-        overlay.appendChild(promptEl);
-        overlay.appendChild(meta);
-        card.appendChild(img);
-        card.appendChild(overlay);
 
         card.addEventListener('click', function() { openModal(index); });
 
         grid.appendChild(card);
     });
+}
+
+function applyGalleryLayoutClasses() {
+    const grid = document.getElementById('gallery-grid');
+    if (!grid) return;
+
+    grid.className = currentView === 'list'
+        ? 'grid grid-cols-1 gap-3'
+        : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6';
+}
+
+function setGalleryView(view) {
+    currentView = view === 'list' ? 'list' : 'grid';
+    document.getElementById('gallery-grid-view-btn').classList.toggle('active', currentView === 'grid');
+    document.getElementById('gallery-list-view-btn').classList.toggle('active', currentView === 'list');
+    renderGallery(imagesData);
 }
 
 // ============================================================
@@ -771,12 +884,56 @@ modalUseInGeneratorBtn.addEventListener('click', function() {
 //  INIT
 // ============================================================
 (function() {
+    var toolbar = document.getElementById('gallery-search-shell');
+    var toggleBtn = document.getElementById('gallery-search-toggle');
     var searchInput = document.getElementById('gallery-search-input');
     var searchClear = document.getElementById('gallery-search-clear');
+    var gridViewBtn = document.getElementById('gallery-grid-view-btn');
+    var listViewBtn = document.getElementById('gallery-list-view-btn');
     var debounceTimer;
+
+    function isDesktop() {
+        return window.matchMedia('(min-width: 640px)').matches;
+    }
+
+    function setSearchOpen(isOpen, shouldFocus) {
+        if (!toolbar) return;
+        toolbar.classList.toggle('is-open', isOpen);
+        if (isOpen && shouldFocus && searchInput) {
+            searchInput.focus();
+        }
+    }
+
+    if (!isDesktop()) {
+        setSearchOpen(false, false);
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        var isOpen = toolbar.classList.contains('is-open');
+        setSearchOpen(!isOpen, !isOpen);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (isDesktop()) return;
+        if (!toolbar.classList.contains('is-open')) return;
+        if (searchInput.value.trim() !== '') return;
+        if (toolbar.contains(e.target) || toggleBtn.contains(e.target)) return;
+        setSearchOpen(false, false);
+    });
+
+    window.addEventListener('resize', function() {
+        if (isDesktop()) {
+            setSearchOpen(true, false);
+        } else if (searchInput.value.trim() === '') {
+            setSearchOpen(false, false);
+        }
+    });
 
     searchInput.addEventListener('input', function() {
         searchTerm = this.value;
+        if (searchTerm.trim() !== '') {
+            setSearchOpen(true, false);
+        }
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(applySearch, 250);
     });
@@ -786,6 +943,14 @@ modalUseInGeneratorBtn.addEventListener('click', function() {
         searchTerm = '';
         applySearch();
         searchInput.focus();
+    });
+
+    gridViewBtn.addEventListener('click', function() {
+        setGalleryView('grid');
+    });
+
+    listViewBtn.addEventListener('click', function() {
+        setGalleryView('list');
     });
 })();
 
