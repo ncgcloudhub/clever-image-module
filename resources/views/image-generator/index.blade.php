@@ -42,6 +42,34 @@
     }
     #genSettings::-webkit-scrollbar { width: 3px; }
     #genSettings::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 99px; }
+    #genDrawerHandle {
+        display: none;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        padding: 0.55rem 0.75rem;
+        background: rgba(13,16,22,0.98);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        justify-content: center;
+    }
+    #genDrawerToggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.6rem;
+        border-radius: 0.55rem;
+        border: 1px solid rgba(255,255,255,0.12);
+        background: rgba(255,255,255,0.03);
+        color: #cbd5e1;
+        font-size: 0.72rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    #genDrawerToggle:hover {
+        border-color: rgba(19,164,236,0.45);
+        color: #e2e8f0;
+    }
 
     .settings-section {
         padding: 1rem;
@@ -543,6 +571,55 @@
         #genStrip { width: 62px; }
     }
 
+    /* ── Mobile + tablet generating drawer mode ───────────────────────────── */
+    @media (max-width: 1023px) {
+        #genWrap.gen-generating {
+            position: relative;
+            flex-direction: column;
+        }
+        #genWrap.gen-generating #genStage {
+            order: 1;
+            flex: 1 1 auto !important;
+            min-height: 100% !important;
+            width: 100%;
+            border-bottom: none !important;
+        }
+        #genWrap.gen-generating #genImageContainer,
+        #genWrap.gen-generating #genMultiGrid,
+        #genWrap.gen-generating #genSpinner {
+            justify-content: center;
+            align-items: center;
+        }
+        #genWrap.gen-generating #genSettings {
+            order: 2;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            max-height: min(74vh, 640px);
+            z-index: 35;
+            border-right: none;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            background: rgba(13, 16, 22, 0.96);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.45);
+            transition: transform 0.28s ease;
+        }
+        #genWrap.gen-generating.drawer-collapsed #genSettings {
+            transform: translateY(calc(100% - 58px));
+        }
+        #genWrap.gen-generating.drawer-expanded #genSettings {
+            transform: translateY(0);
+        }
+        #genWrap.gen-generating #genDrawerHandle {
+            display: flex;
+        }
+        #genWrap.gen-generating #genStrip {
+            display: none !important;
+        }
+    }
+
     /* ── Mobile fit (show preview + settings on one screen) ───────────────── */
     @media (max-width: 639px) {
         #genWrap {
@@ -643,6 +720,12 @@
 
     {{-- ── Settings Panel ─────────────────────────────── --}}
     <div id="genSettings">
+        <div id="genDrawerHandle">
+            <button id="genDrawerToggle" type="button" onclick="toggleGenDrawer()" aria-label="Toggle settings drawer">
+                <span class="material-symbols-outlined" id="genDrawerToggleIcon" style="font-size:14px;">keyboard_arrow_up</span>
+                <span id="genDrawerToggleText">Open settings</span>
+            </button>
+        </div>
 
         {{-- Provider --}}
         <div class="settings-section">
@@ -818,11 +901,9 @@
             <div id="genImageActions">
                 <button class="img-action-btn" onclick="downloadImage(S.activeImageUrl)">
                     <span class="material-symbols-outlined" style="font-size:14px;">download</span>
-                    Download
                 </button>
                 <button class="img-action-btn" onclick="openLightbox(S.activeImageUrl)">
                     <span class="material-symbols-outlined" style="font-size:14px;">open_in_full</span>
-                    Expand
                 </button>
             </div>
         </div>
@@ -846,7 +927,6 @@
     <img id="lbImage" src="" alt="">
     <button id="lbDownload" onclick="downloadImage(document.getElementById('lbImage').src)">
         <span class="material-symbols-outlined" style="font-size:16px;">download</span>
-        Download
     </button>
 </div>
 @endsection
@@ -1264,10 +1344,51 @@ function setGenerating(gen) {
         : '<span class="material-symbols-outlined" style="font-size:18px;">auto_awesome</span> Generate';
     prog.style.display = gen ? '' : 'none';
     spin.style.display = gen ? 'flex' : 'none';
+    setGeneratingDrawerState(gen);
 
     if (!gen) {
         document.getElementById('genProgressBar').style.width = '0%';
     }
+}
+
+function isMobileTabletViewport() {
+    return window.matchMedia('(max-width: 1023px)').matches;
+}
+
+function updateGenDrawerToggleUi() {
+    const wrap = document.getElementById('genWrap');
+    const icon = document.getElementById('genDrawerToggleIcon');
+    const text = document.getElementById('genDrawerToggleText');
+    if (!wrap || !icon || !text) return;
+
+    const expanded = wrap.classList.contains('drawer-expanded');
+    icon.textContent = expanded ? 'keyboard_arrow_down' : 'keyboard_arrow_up';
+    text.textContent = expanded ? 'Close settings' : 'Open settings';
+}
+
+function setGeneratingDrawerState(isGenerating) {
+    const wrap = document.getElementById('genWrap');
+    if (!wrap) return;
+
+    if (!isGenerating || !isMobileTabletViewport()) {
+        wrap.classList.remove('gen-generating', 'drawer-collapsed', 'drawer-expanded');
+        updateGenDrawerToggleUi();
+        return;
+    }
+
+    wrap.classList.add('gen-generating', 'drawer-collapsed');
+    wrap.classList.remove('drawer-expanded');
+    updateGenDrawerToggleUi();
+}
+
+function toggleGenDrawer() {
+    const wrap = document.getElementById('genWrap');
+    if (!wrap || !wrap.classList.contains('gen-generating')) return;
+
+    const isCollapsed = wrap.classList.contains('drawer-collapsed');
+    wrap.classList.toggle('drawer-collapsed', !isCollapsed);
+    wrap.classList.toggle('drawer-expanded', isCollapsed);
+    updateGenDrawerToggleUi();
 }
 
 // ── Image display ──────────────────────────────────────
@@ -1389,6 +1510,10 @@ function closeAc() {
 
 document.addEventListener('click', e => {
     if (!e.target.closest('#promptInput') && !e.target.closest('#acDropdown')) closeAc();
+});
+
+window.addEventListener('resize', () => {
+    if (!isMobileTabletViewport()) setGeneratingDrawerState(false);
 });
 
 // ── Helpers ────────────────────────────────────────────

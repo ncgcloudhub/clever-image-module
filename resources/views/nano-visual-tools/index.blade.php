@@ -27,6 +27,12 @@
     }
     @media (min-width: 640px) {
         #directoryView { padding: 1.5rem; }
+        .tool-search-shell {
+            max-width: 18rem;
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
     }
     @media (min-width: 1024px) {
         #directoryView { padding: 2rem 2.5rem; }
@@ -47,6 +53,20 @@
     .view-toggle button.active {
         background: rgba(19, 164, 236, 0.2);
         color: #13a4ec;
+    }
+    .tool-search-shell {
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateX(-6px);
+        pointer-events: none;
+        transition: max-width 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+    }
+    .tool-search-shell.is-open {
+        max-width: 15rem;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
     }
     .tool-card {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -378,6 +398,7 @@
         #toolInterfaceView > div {
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         #toolInterfaceView section:first-child {
             order: 2;
@@ -404,6 +425,46 @@
             width: 100% !important;
             padding: 0.5rem !important;
         }
+
+        /* While generating, the form becomes a bottom drawer and preview stays centered */
+        #toolInterfaceView.mobile-generating #previewRightSection {
+            order: 1;
+            flex: 1 1 auto !important;
+            min-height: 100% !important;
+            padding: 0.75rem !important;
+            overflow: hidden !important;
+        }
+        #toolInterfaceView.mobile-generating #previewContent {
+            min-height: 100% !important;
+            height: 100%;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        #toolInterfaceView.mobile-generating section:first-child {
+            order: 2;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 25;
+            max-height: min(74vh, 620px) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: none;
+            background: rgba(15, 17, 23, 0.95);
+            backdrop-filter: blur(10px);
+            transition: transform 0.28s ease;
+            box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+        }
+        #toolInterfaceView.mobile-generating.mobile-drawer-collapsed section:first-child {
+            transform: translateY(calc(100% - 64px));
+        }
+        #toolInterfaceView.mobile-generating.mobile-drawer-expanded section:first-child {
+            transform: translateY(0);
+        }
+        #toolInterfaceView.mobile-generating #mobileDrawerToggle {
+            display: inline-flex !important;
+        }
     }
 </style>
 @endpush
@@ -421,37 +482,47 @@
 <!-- Directory/Grid View -->
 <div id="directoryView">
 <!-- Search and Filter Bar -->
-<div class="glass p-4 rounded-xl mb-6 border border-white/5">
-    <div class="flex flex-col md:flex-row gap-4">
-        <!-- Search -->
-        <div class="flex-1 relative group">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">search</span>
-            <input
-                type="text"
-                id="toolSearch"
-                class="w-full bg-white/5 border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-sm focus:ring-primary focus:border-primary transition-all placeholder:text-slate-600"
-                placeholder="Search tools by name or description..."
-            />
+<div class="glass rounded-xl p-2 mb-6 border border-white/5 bg-white/[0.03]">
+    <div class="flex items-center gap-2">
+        <button id="toolSearchToggle" type="button" class="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-primary/40 transition-all" aria-label="Toggle search">
+            <span class="material-symbols-outlined text-[18px]">search</span>
+        </button>
+
+        <div id="toolSearchShell" class="tool-search-shell">
+            <div class="relative">
+                <input
+                    type="text"
+                    id="toolSearch"
+                    class="w-full h-9 bg-white/5 border-white/10 rounded-lg pl-3 pr-9 text-sm focus:ring-primary focus:border-primary transition-all placeholder:text-slate-600"
+                    placeholder="Search tools by name or description..."
+                />
+                <button id="toolSearchClear" type="button" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors" aria-label="Clear search">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
         </div>
 
         <!-- View Toggle -->
-        <div class="view-toggle flex items-center gap-2 bg-white/5 p-1 rounded-lg">
+        <div class="view-toggle ml-auto flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/10">
             <button
                 id="gridViewBtn"
-                class="active p-2 rounded-lg transition-all"
+                class="active h-7 w-7 inline-flex items-center justify-center rounded-md transition-all"
                 onclick="setView('grid')"
+                aria-label="Grid view"
             >
-                <span class="material-symbols-outlined text-sm">grid_view</span>
+                <span class="material-symbols-outlined text-[16px]">grid_view</span>
             </button>
             <button
                 id="listViewBtn"
-                class="p-2 rounded-lg transition-all"
+                class="h-7 w-7 inline-flex items-center justify-center rounded-md transition-all"
                 onclick="setView('list')"
+                aria-label="List view"
             >
-                <span class="material-symbols-outlined text-sm">view_list</span>
+                <span class="material-symbols-outlined text-[16px]">view_list</span>
             </button>
         </div>
     </div>
+    <p class="text-[11px] text-slate-400 mt-1.5 px-1">Tip: search by tool name or short description.</p>
 </div>
 
 <!-- Tools Container -->
@@ -483,6 +554,16 @@
                     <h2 id="toolInterfaceTitle" class="font-bold text-white text-sm truncate"></h2>
                     <p class="text-[10px] text-slate-500">Configure & Generate</p>
                 </div>
+                <button
+                    id="mobileDrawerToggle"
+                    type="button"
+                    onclick="toggleMobileFormDrawer()"
+                    class="ml-auto hidden items-center gap-1.5 rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white hover:border-primary/40 transition-colors"
+                    aria-label="Toggle form drawer"
+                >
+                    <span class="material-symbols-outlined text-sm" id="mobileDrawerToggleIcon">keyboard_arrow_up</span>
+                    <span id="mobileDrawerToggleText">Open</span>
+                </button>
             </div>
 
             <!-- Form Content - Scrollable -->
@@ -974,6 +1055,7 @@
     }
 
     function backToDirectory() {
+        setMobileGeneratingDrawerState(false);
         document.getElementById('toolInterfaceView').classList.add('hidden');
         document.getElementById('directoryView').classList.remove('hidden');
         document.getElementById('toolInterfaceForm').reset();
@@ -1006,6 +1088,7 @@
     }
 
     function resetPreview() {
+        setMobileGeneratingDrawerState(false);
         exitRegenLayout();
         const previewContent = document.getElementById('previewContent');
         previewContent.innerHTML = `
@@ -1022,6 +1105,46 @@
         document.getElementById('regeneratedGrid').innerHTML = '';
         window.currentImageUrl = null;
         window.currentImageData = null;
+    }
+
+    function isMobileTabletViewport() {
+        return window.matchMedia('(max-width: 1023px)').matches;
+    }
+
+    function updateMobileDrawerToggleUi() {
+        const view = document.getElementById('toolInterfaceView');
+        const icon = document.getElementById('mobileDrawerToggleIcon');
+        const text = document.getElementById('mobileDrawerToggleText');
+        if (!view || !icon || !text) return;
+
+        const expanded = view.classList.contains('mobile-drawer-expanded');
+        icon.textContent = expanded ? 'keyboard_arrow_down' : 'keyboard_arrow_up';
+        text.textContent = expanded ? 'Close' : 'Open';
+    }
+
+    function setMobileGeneratingDrawerState(isGenerating) {
+        const view = document.getElementById('toolInterfaceView');
+        if (!view) return;
+
+        if (!isGenerating || !isMobileTabletViewport()) {
+            view.classList.remove('mobile-generating', 'mobile-drawer-collapsed', 'mobile-drawer-expanded');
+            updateMobileDrawerToggleUi();
+            return;
+        }
+
+        view.classList.add('mobile-generating', 'mobile-drawer-collapsed');
+        view.classList.remove('mobile-drawer-expanded');
+        updateMobileDrawerToggleUi();
+    }
+
+    function toggleMobileFormDrawer() {
+        const view = document.getElementById('toolInterfaceView');
+        if (!view || !view.classList.contains('mobile-generating')) return;
+
+        const isCollapsed = view.classList.contains('mobile-drawer-collapsed');
+        view.classList.toggle('mobile-drawer-collapsed', !isCollapsed);
+        view.classList.toggle('mobile-drawer-expanded', isCollapsed);
+        updateMobileDrawerToggleUi();
     }
 
     function setupInterfaceForm(tool) {
@@ -1326,6 +1449,7 @@
         const previewContent = document.getElementById('previewContent');
 
         btn.disabled = true;
+        setMobileGeneratingDrawerState(true);
         statusEl.className = 'p-3 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs';
         statusEl.classList.remove('hidden');
         statusEl.innerHTML = `
@@ -1392,6 +1516,7 @@
             // Reset preview on error
             resetPreview();
         } finally {
+            setMobileGeneratingDrawerState(false);
             btn.disabled = false;
         }
     });
@@ -1559,14 +1684,67 @@
     }
 
     // Search functionality
-    document.getElementById('toolSearch').addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const filtered = availableTools.filter(tool =>
-            tool.name.toLowerCase().includes(searchTerm) ||
-            (tool.description && tool.description.toLowerCase().includes(searchTerm))
-        );
-        renderTools(filtered);
-    });
+    (function initToolSearchToolbar() {
+        const searchShell = document.getElementById('toolSearchShell');
+        const searchToggle = document.getElementById('toolSearchToggle');
+        const searchInput = document.getElementById('toolSearch');
+        const searchClear = document.getElementById('toolSearchClear');
+
+        function isDesktop() {
+            return window.matchMedia('(min-width: 640px)').matches;
+        }
+
+        function setSearchOpen(isOpen, shouldFocus) {
+            if (!searchShell) return;
+            searchShell.classList.toggle('is-open', isOpen);
+            if (isOpen && shouldFocus && searchInput) searchInput.focus();
+        }
+
+        function applyToolSearch(term) {
+            const q = term.toLowerCase();
+            const filtered = availableTools.filter(tool =>
+                tool.name.toLowerCase().includes(q) ||
+                (tool.description && tool.description.toLowerCase().includes(q))
+            );
+            renderTools(filtered);
+            searchClear.classList.toggle('hidden', q.trim() === '');
+        }
+
+        if (!isDesktop()) setSearchOpen(false, false);
+
+        searchToggle.addEventListener('click', () => {
+            const isOpen = searchShell.classList.contains('is-open');
+            setSearchOpen(!isOpen, !isOpen);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (isDesktop()) return;
+            if (!searchShell.classList.contains('is-open')) return;
+            if (searchInput.value.trim() !== '') return;
+            if (searchShell.contains(e.target) || searchToggle.contains(e.target)) return;
+            setSearchOpen(false, false);
+        });
+
+        window.addEventListener('resize', () => {
+            if (isDesktop()) {
+                setSearchOpen(true, false);
+            } else if (searchInput.value.trim() === '') {
+                setSearchOpen(false, false);
+            }
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value;
+            if (searchTerm.trim() !== '') setSearchOpen(true, false);
+            applyToolSearch(searchTerm);
+        });
+
+        searchClear.addEventListener('click', () => {
+            searchInput.value = '';
+            applyToolSearch('');
+            searchInput.focus();
+        });
+    })();
 
     function escapeHtml(text) {
         if (!text) return '';
@@ -1584,6 +1762,9 @@
 
     // Initialize
     loadTools();
+    window.addEventListener('resize', () => {
+        if (!isMobileTabletViewport()) setMobileGeneratingDrawerState(false);
+    });
 
     // ─── Dev / Test Helper ───────────────────────────────────────────────────
     function testRegenerateUI() {

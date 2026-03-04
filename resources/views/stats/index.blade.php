@@ -4,11 +4,34 @@
 
 @push('styles')
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<style>
+    /* Prevent post-load chart/table content from widening cards on small screens */
+    .stats-panel {
+        min-width: 0;
+    }
+    .stats-root {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: clip;
+    }
+    .stats-chart-wrap {
+        overflow: hidden;
+    }
+    @media (max-width: 1023px) {
+        /* If desktop sidebar margin-left was left inline, force reset on mobile/tablet */
+        #appMain {
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: hidden !important;
+        }
+    }
+</style>
 @endpush
 
 @section('content')
 
-<div class="space-y-6 sm:space-y-8 overflow-x-hidden">
+<div class="stats-root space-y-6 sm:space-y-8 overflow-x-hidden">
 
     {{-- Page header --}}
     <div class="flex flex-wrap items-start sm:items-center justify-between gap-3">
@@ -47,9 +70,9 @@
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {{-- Images over time --}}
-        <div class="glass rounded-2xl border border-white/10 p-4 sm:p-6">
+        <div class="stats-panel glass rounded-2xl border border-white/10 p-4 sm:p-6">
             <h2 class="text-sm font-bold text-white mb-4">Images Generated Over Time</h2>
-            <div id="timelineChartWrap" class="relative h-44 sm:h-52 flex items-center justify-center">
+            <div id="timelineChartWrap" class="stats-chart-wrap relative h-44 sm:h-52 flex items-center justify-center">
                 <span id="timelineLoading" class="text-slate-500 text-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-base" style="animation:spin 1s linear infinite">progress_activity</span>
                     Loading…
@@ -59,9 +82,9 @@
         </div>
 
         {{-- Model distribution --}}
-        <div class="glass rounded-2xl border border-white/10 p-4 sm:p-6">
+        <div class="stats-panel glass rounded-2xl border border-white/10 p-4 sm:p-6">
             <h2 class="text-sm font-bold text-white mb-4">Images by Model</h2>
-            <div id="modelChartWrap" class="relative h-44 sm:h-52 flex items-center justify-center">
+            <div id="modelChartWrap" class="stats-chart-wrap relative h-44 sm:h-52 flex items-center justify-center">
                 <span id="modelLoading" class="text-slate-500 text-sm flex items-center gap-2">
                     <span class="material-symbols-outlined text-base" style="animation:spin 1s linear infinite">progress_activity</span>
                     Loading…
@@ -73,7 +96,7 @@
     </div>
 
     {{-- ── Credit usage bar ── --}}
-    <div class="glass rounded-2xl border border-white/10 p-4 sm:p-6">
+    <div class="stats-panel glass rounded-2xl border border-white/10 p-4 sm:p-6">
         <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-bold text-white">Credit Usage</h2>
             <span id="creditPct" class="text-xs font-bold text-primary">—%</span>
@@ -88,14 +111,14 @@
     </div>
 
     {{-- ── Recent activity table ── --}}
-    <div class="glass rounded-2xl border border-white/10 p-4 sm:p-6">
+    <div class="stats-panel glass rounded-2xl border border-white/10 p-4 sm:p-6">
         <h2 class="text-sm font-bold text-white mb-4">Recent Image Activity</h2>
         <div id="recentTableWrap">
             <div id="recentLoading" class="flex items-center justify-center py-8 text-slate-500 text-sm gap-2">
                 <span class="material-symbols-outlined text-base" style="animation:spin 1s linear infinite">progress_activity</span>
                 Loading…
             </div>
-            <div id="recentTableInner" class="hidden overflow-x-auto">
+            <div id="recentTableInner" class="hidden overflow-x-auto max-w-full">
                 <table class="w-full text-xs sm:text-sm min-w-[520px]">
                     <thead>
                         <tr class="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-white/5">

@@ -195,6 +195,34 @@
         border: 1px solid rgba(255,255,255,0.1);
     }
 
+    /* Compact community toolbar */
+    .community-search-shell {
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateX(-6px);
+        pointer-events: none;
+        transition: max-width 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+    }
+    .community-search-shell.is-open {
+        max-width: 15rem;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
+    }
+    .community-view-btn.active {
+        background: rgba(14, 165, 233, 0.2);
+        color: #7dd3fc;
+        border-color: rgba(14, 165, 233, 0.4);
+    }
+    .community-list-card:hover .community-list-arrow {
+        transform: translateX(2px);
+        color: #67e8f9;
+    }
+    .community-list-arrow {
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+
     /* Card creator overlay */
     .card-creator-strip {
         position: absolute; bottom: 0; left: 0; right: 0;
@@ -217,35 +245,60 @@
         .modal-image-container { min-height: auto; }
         .modal-details { width: 100%; max-height: none; }
     }
+    @media (min-width: 640px) {
+        .community-search-shell {
+            max-width: 18rem;
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+    }
 </style>
 @endpush
 
 @section('content')
 <section>
-    <div class="flex justify-between items-end mb-8">
+    <div class="flex items-start justify-between gap-3 mb-5 sm:mb-7">
         <div>
-            <h2 class="text-3xl font-black text-white">Community Gallery</h2>
-            <p class="text-slate-400 text-sm">All AI-generated images from the community</p>
+            <h2 class="text-2xl sm:text-3xl font-black leading-tight text-white">Community Gallery</h2>
+            <p class="text-slate-400 text-xs sm:text-sm leading-snug mt-1">All AI-generated images from the community</p>
         </div>
         <a href="{{ route('nano.visual.tools') }}"
-           class="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all">
-            <span class="material-symbols-outlined">add</span>
-            Create New
+           class="h-11 w-11 sm:h-12 sm:w-12 shrink-0 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold inline-flex items-center justify-center transition-all"
+           aria-label="Create new image">
+            <span class="material-symbols-outlined text-[20px] sm:text-[22px]">add</span>
         </a>
     </div>
 
-    <!-- Search Bar -->
-    <div class="mb-6">
-        <div class="relative">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">search</span>
-            <input type="text" id="community-search-input"
-                   placeholder="Search by prompt, creator, or model..."
-                   class="w-full glass rounded-xl py-3 pl-12 pr-12 text-white placeholder-slate-500 bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all">
-            <button id="community-search-clear" class="hidden absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
-                <span class="material-symbols-outlined text-lg">close</span>
-            </button>
+    <!-- Compact toolbar -->
+    <div class="mb-5">
+        <div class="glass rounded-xl p-2 border border-white/10 bg-white/[0.03]">
+            <div class="flex items-center gap-2">
+                <button id="community-search-toggle" type="button" class="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-primary/40 transition-all" aria-label="Toggle search">
+                    <span class="material-symbols-outlined text-[18px]">search</span>
+                </button>
+                <div id="community-search-shell" class="community-search-shell">
+                    <div class="relative">
+                        <input type="text" id="community-search-input"
+                               placeholder="Search prompt, creator, model..."
+                               class="w-full h-9 rounded-lg py-2 pl-3 pr-9 text-sm text-white placeholder-slate-500 bg-white/5 border border-white/10 focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all">
+                        <button id="community-search-clear" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors">
+                            <span class="material-symbols-outlined text-base">close</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="ml-auto flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+                    <button id="community-grid-view-btn" type="button" class="community-view-btn active h-7 w-7 inline-flex items-center justify-center rounded-md border border-transparent text-slate-300 hover:text-white transition-all" aria-label="Grid view">
+                        <span class="material-symbols-outlined text-[16px]">grid_view</span>
+                    </button>
+                    <button id="community-list-view-btn" type="button" class="community-view-btn h-7 w-7 inline-flex items-center justify-center rounded-md border border-transparent text-slate-300 hover:text-white transition-all" aria-label="List view">
+                        <span class="material-symbols-outlined text-[16px]">view_list</span>
+                    </button>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-1.5 px-1">Tip: search by prompt text, creator, model, or tool.</p>
+            <p id="community-search-results" class="hidden text-slate-400 text-xs mt-1.5 px-1"></p>
         </div>
-        <p id="community-search-results" class="hidden text-slate-400 text-sm mt-2"></p>
     </div>
 
     <!-- Gallery Grid -->
@@ -400,6 +453,7 @@ let communityAllPagesCache  = null; // all pages combined, null = not fetched ye
 let communityAllPagesFetching = false;
 let communityCurrentIndex   = 0;
 let communitySearchTerm     = '';
+let communityCurrentView    = 'grid';
 
 // ============================================================
 //  HELPERS
@@ -419,10 +473,13 @@ function creatorInitials(name) {
 // ============================================================
 function communityShowSkeletons() {
     const grid = document.getElementById('community-gallery-grid');
+    communityApplyLayoutClasses();
     grid.innerHTML = '';
     for (let i = 0; i < 8; i++) {
         const div = document.createElement('div');
-        div.className = 'skeleton-card glass rounded-2xl aspect-square animate-pulse bg-white/5';
+        div.className = communityCurrentView === 'list'
+            ? 'skeleton-card glass rounded-xl h-24 animate-pulse bg-white/5'
+            : 'skeleton-card glass rounded-2xl aspect-square animate-pulse bg-white/5';
         grid.appendChild(div);
     }
     grid.classList.remove('hidden');
@@ -434,6 +491,7 @@ function communityShowSkeletons() {
 function communityRenderGallery(images) {
     communityImagesData = images;
     const grid = document.getElementById('community-gallery-grid');
+    communityApplyLayoutClasses();
     grid.innerHTML = '';
 
     if (!images.length) {
@@ -448,73 +506,149 @@ function communityRenderGallery(images) {
 
     images.forEach(function(image, index) {
         const card = document.createElement('div');
-        card.className = 'group relative rounded-2xl overflow-hidden glass aspect-square cursor-zoom-in hover:ring-2 hover:ring-primary/50 transition-all';
+        const isListView = communityCurrentView === 'list';
+        card.className = isListView
+            ? 'community-list-card group glass rounded-xl border border-white/10 bg-white/[0.03] p-2.5 flex items-center gap-3 cursor-zoom-in hover:border-primary/40 transition-all'
+            : 'group relative rounded-2xl overflow-hidden glass aspect-square cursor-zoom-in hover:ring-2 hover:ring-primary/50 transition-all';
         card.dataset.index = index;
 
         const img = document.createElement('img');
         img.src       = image.image_url;
         img.alt       = image.prompt || 'Generated image';
-        img.className = 'w-full h-full object-cover transition-transform duration-500 group-hover:scale-105';
+        img.className = isListView
+            ? 'h-20 w-20 sm:h-24 sm:w-24 rounded-lg object-cover flex-shrink-0'
+            : 'w-full h-full object-cover transition-transform duration-500 group-hover:scale-105';
         img.loading   = 'lazy';
 
-        // Hover overlay with prompt
-        const overlay = document.createElement('div');
-        overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4';
-
-        const promptEl = document.createElement('p');
-        promptEl.className  = 'text-white text-xs font-medium line-clamp-2 mb-1';
-        promptEl.textContent = image.prompt || 'No prompt';
-
-        const meta = document.createElement('div');
-        meta.className = 'flex items-center gap-2 text-slate-400 text-[10px]';
-
-        if (image.tool) {
-            const badge = document.createElement('span');
-            badge.className  = 'bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold';
-            badge.textContent = image.tool.name;
-            meta.appendChild(badge);
-        }
-        if (image.created_at) {
-            const dateSpan = document.createElement('span');
-            dateSpan.textContent = communityFormatDate(image.created_at);
-            meta.appendChild(dateSpan);
-        }
-
-        overlay.appendChild(promptEl);
-        overlay.appendChild(meta);
-
-        // Always-visible creator strip at card bottom
-        const creatorStrip = document.createElement('div');
-        creatorStrip.className = 'card-creator-strip';
-
         const creatorName = image.user ? (image.user.name || image.user.username || 'Anonymous') : 'Anonymous';
-        const avatarEl = document.createElement('div');
-        avatarEl.className = 'card-creator-avatar';
+        if (isListView) {
+            const content = document.createElement('div');
+            content.className = 'min-w-0 flex-1';
 
-        if (image.user && image.user.avatar) {
-            const avatarImg = document.createElement('img');
-            avatarImg.src = image.user.avatar;
-            avatarImg.className = 'w-full h-full object-cover';
-            avatarEl.appendChild(avatarImg);
+            const promptEl = document.createElement('p');
+            promptEl.className  = 'text-white text-xs sm:text-sm font-medium line-clamp-2';
+            promptEl.textContent = image.prompt || 'No prompt';
+
+            const creatorRow = document.createElement('div');
+            creatorRow.className = 'mt-1.5 flex items-center gap-2 text-[11px] text-slate-300';
+
+            const avatarEl = document.createElement('div');
+            avatarEl.className = 'card-creator-avatar !w-5 !h-5 !text-[9px]';
+            if (image.user && image.user.avatar) {
+                const avatarImg = document.createElement('img');
+                avatarImg.src = image.user.avatar;
+                avatarImg.className = 'w-full h-full object-cover';
+                avatarEl.appendChild(avatarImg);
+            } else {
+                avatarEl.textContent = creatorInitials(creatorName);
+            }
+
+            const nameEl = document.createElement('span');
+            nameEl.className = 'truncate';
+            nameEl.textContent = creatorName;
+
+            const meta = document.createElement('div');
+            meta.className = 'mt-1 flex items-center gap-2 text-slate-400 text-[11px]';
+
+            if (image.tool) {
+                const badge = document.createElement('span');
+                badge.className  = 'bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold';
+                badge.textContent = image.tool.name;
+                meta.appendChild(badge);
+            }
+            if (image.created_at) {
+                const dateSpan = document.createElement('span');
+                dateSpan.textContent = communityFormatDate(image.created_at);
+                meta.appendChild(dateSpan);
+            }
+
+            const arrow = document.createElement('span');
+            arrow.className = 'community-list-arrow material-symbols-outlined text-slate-500 text-lg';
+            arrow.textContent = 'chevron_right';
+
+            creatorRow.appendChild(avatarEl);
+            creatorRow.appendChild(nameEl);
+            content.appendChild(promptEl);
+            content.appendChild(creatorRow);
+            content.appendChild(meta);
+            card.appendChild(img);
+            card.appendChild(content);
+            card.appendChild(arrow);
         } else {
-            avatarEl.textContent = creatorInitials(creatorName);
+            // Hover overlay with prompt
+            const overlay = document.createElement('div');
+            overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4';
+
+            const promptEl = document.createElement('p');
+            promptEl.className  = 'text-white text-xs font-medium line-clamp-2 mb-1';
+            promptEl.textContent = image.prompt || 'No prompt';
+
+            const meta = document.createElement('div');
+            meta.className = 'flex items-center gap-2 text-slate-400 text-[10px]';
+
+            if (image.tool) {
+                const badge = document.createElement('span');
+                badge.className  = 'bg-primary/20 text-primary px-2 py-0.5 rounded-full font-bold';
+                badge.textContent = image.tool.name;
+                meta.appendChild(badge);
+            }
+            if (image.created_at) {
+                const dateSpan = document.createElement('span');
+                dateSpan.textContent = communityFormatDate(image.created_at);
+                meta.appendChild(dateSpan);
+            }
+
+            overlay.appendChild(promptEl);
+            overlay.appendChild(meta);
+
+            // Always-visible creator strip at card bottom
+            const creatorStrip = document.createElement('div');
+            creatorStrip.className = 'card-creator-strip';
+
+            const avatarEl = document.createElement('div');
+            avatarEl.className = 'card-creator-avatar';
+
+            if (image.user && image.user.avatar) {
+                const avatarImg = document.createElement('img');
+                avatarImg.src = image.user.avatar;
+                avatarImg.className = 'w-full h-full object-cover';
+                avatarEl.appendChild(avatarImg);
+            } else {
+                avatarEl.textContent = creatorInitials(creatorName);
+            }
+
+            const nameEl = document.createElement('span');
+            nameEl.className  = 'card-creator-name';
+            nameEl.textContent = creatorName;
+
+            creatorStrip.appendChild(avatarEl);
+            creatorStrip.appendChild(nameEl);
+
+            card.appendChild(img);
+            card.appendChild(overlay);
+            card.appendChild(creatorStrip);
         }
-
-        const nameEl = document.createElement('span');
-        nameEl.className  = 'card-creator-name';
-        nameEl.textContent = creatorName;
-
-        creatorStrip.appendChild(avatarEl);
-        creatorStrip.appendChild(nameEl);
-
-        card.appendChild(img);
-        card.appendChild(overlay);
-        card.appendChild(creatorStrip);
 
         card.addEventListener('click', function() { communityOpenModal(index); });
 
         grid.appendChild(card);
     });
+}
+
+function communityApplyLayoutClasses() {
+    const grid = document.getElementById('community-gallery-grid');
+    if (!grid) return;
+
+    grid.className = communityCurrentView === 'list'
+        ? 'grid grid-cols-1 gap-3'
+        : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6';
+}
+
+function setCommunityView(view) {
+    communityCurrentView = view === 'list' ? 'list' : 'grid';
+    document.getElementById('community-grid-view-btn').classList.toggle('active', communityCurrentView === 'grid');
+    document.getElementById('community-list-view-btn').classList.toggle('active', communityCurrentView === 'list');
+    communityRenderGallery(communityImagesData);
 }
 
 // ============================================================
@@ -871,12 +1005,56 @@ communityModalUseInGeneratorBtn.addEventListener('click', function() {
 //  INIT
 // ============================================================
 (function() {
+    var toolbar = document.getElementById('community-search-shell');
+    var toggleBtn = document.getElementById('community-search-toggle');
     var searchInput = document.getElementById('community-search-input');
     var searchClear = document.getElementById('community-search-clear');
+    var gridViewBtn = document.getElementById('community-grid-view-btn');
+    var listViewBtn = document.getElementById('community-list-view-btn');
     var debounceTimer;
+
+    function isDesktop() {
+        return window.matchMedia('(min-width: 640px)').matches;
+    }
+
+    function setSearchOpen(isOpen, shouldFocus) {
+        if (!toolbar) return;
+        toolbar.classList.toggle('is-open', isOpen);
+        if (isOpen && shouldFocus && searchInput) {
+            searchInput.focus();
+        }
+    }
+
+    if (!isDesktop()) {
+        setSearchOpen(false, false);
+    }
+
+    toggleBtn.addEventListener('click', function() {
+        var isOpen = toolbar.classList.contains('is-open');
+        setSearchOpen(!isOpen, !isOpen);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (isDesktop()) return;
+        if (!toolbar.classList.contains('is-open')) return;
+        if (searchInput.value.trim() !== '') return;
+        if (toolbar.contains(e.target) || toggleBtn.contains(e.target)) return;
+        setSearchOpen(false, false);
+    });
+
+    window.addEventListener('resize', function() {
+        if (isDesktop()) {
+            setSearchOpen(true, false);
+        } else if (searchInput.value.trim() === '') {
+            setSearchOpen(false, false);
+        }
+    });
 
     searchInput.addEventListener('input', function() {
         communitySearchTerm = this.value;
+        if (communitySearchTerm.trim() !== '') {
+            setSearchOpen(true, false);
+        }
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(communityApplySearch, 250);
     });
@@ -886,6 +1064,14 @@ communityModalUseInGeneratorBtn.addEventListener('click', function() {
         communitySearchTerm = '';
         communityApplySearch();
         searchInput.focus();
+    });
+
+    gridViewBtn.addEventListener('click', function() {
+        setCommunityView('grid');
+    });
+
+    listViewBtn.addEventListener('click', function() {
+        setCommunityView('list');
     });
 })();
 
