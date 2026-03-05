@@ -45,7 +45,6 @@
         <button onclick="setPreset('Photorealistic portrait in golden hour lighting, 8k, ultra detailed, cinematic')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Photorealistic</button>
         <button onclick="setPreset('Cyberpunk city street at night in 8k resolution, cinematic lighting, neon blue and pink, rain reflections')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Cyberpunk</button>
         <button onclick="setPreset('3D render of a futuristic spaceship in deep space, volumetric lighting, ultra realistic, 4k')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">3D</button>
-        <span class="text-[10px] sm:ml-auto text-slate-600">Ctrl+Enter</span>
     </div>
 </section>
 </div>
