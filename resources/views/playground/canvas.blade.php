@@ -4,16 +4,28 @@
 
 @push('styles')
 <style>
-    /* ── Kill default padding so we go full-height ─── */
-    #appMain > div.p-10 { padding: 0 !important; }
+    /* ── Make this page fully viewport-fitted (no page scroll) ─── */
+    #appMain {
+        height: 100dvh;
+        overflow: hidden;
+    }
+    #appMain > div {
+        padding: 0 !important;
+        height: calc(100dvh - 4rem); /* mobile topbar: h-16 */
+        overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+        #appMain > div { height: calc(100dvh - 5rem); } /* desktop topbar: h-20 */
+    }
 
     /* ── Root layout ─────────────────────────────────── */
     #studioWrap {
         display: flex;
         width: 100%;
-        height: calc(100vh - 5rem);
+        height: 100%;
         overflow: hidden;
         position: relative;
+        min-height: 0;
     }
 
     /* ── Canvas stage ────────────────────────────────── */
@@ -109,6 +121,94 @@
         pointer-events: none;
         user-select: none;
     }
+    #canvasGeneratingOverlay {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 0.75rem;
+        background: rgba(8, 10, 14, 0.26);
+        backdrop-filter: blur(1px);
+        z-index: 16;
+        pointer-events: none;
+    }
+    #canvasGeneratingOverlay .canvas-gen-ring {
+        width: 44px;
+        height: 44px;
+        border-radius: 9999px;
+        border: 3px solid rgba(19,164,236,0.22);
+        border-top-color: #13a4ec;
+        animation: canvasGenSpin 0.9s linear infinite;
+    }
+    @keyframes canvasGenSpin { to { transform: rotate(360deg); } }
+
+    /* ── Example image cards in empty state ─────────── */
+    .canvas-example-card {
+        pointer-events: auto;
+        position: relative;
+        width: 148px;
+        height: 148px;
+        border-radius: 0.875rem;
+        overflow: visible;
+        border: 1px solid rgba(255,255,255,0.06);
+        cursor: pointer;
+        background: #16181f;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        flex-shrink: 0;
+    }
+    .canvas-example-card:hover {
+        transform: translateY(-4px) scale(1.03);
+        box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+        border-color: rgba(99,102,241,0.35);
+    }
+    .canvas-example-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 0.875rem;
+        display: block;
+    }
+    .canvas-example-tooltip {
+        position: absolute;
+        bottom: calc(100% + 10px);
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(12, 15, 23, 0.97);
+        border: 1px solid rgba(255,255,255,0.09);
+        color: #94a3b8;
+        font-size: 11px;
+        line-height: 1.5;
+        padding: 7px 11px;
+        border-radius: 9px;
+        white-space: normal;
+        width: 210px;
+        text-align: center;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s;
+        z-index: 50;
+    }
+    .canvas-example-card:hover .canvas-example-tooltip { opacity: 1; }
+    .canvas-example-use-label {
+        pointer-events: none;
+        position: absolute;
+        bottom: 6px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.72);
+        color: #e2e8f0;
+        font-size: 10px;
+        font-weight: 500;
+        padding: 3px 9px;
+        border-radius: 999px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.15s;
+        backdrop-filter: blur(4px);
+    }
+    .canvas-example-card:hover .canvas-example-use-label { opacity: 1; }
 
     /* ── Flow strip (right, vertical) ───────────────── */
     #flowStrip {
@@ -423,6 +523,128 @@
         background: rgba(19,164,236,0.1);
         color: #e2e8f0;
     }
+
+    /* ── Touch devices: always show image action buttons ────── */
+    @media (hover: none) {
+        #canvasImageActions { opacity: 1 !important; }
+    }
+
+    /* ── Topbar is h-16 (4rem) on mobile, h-20 (5rem) on lg+ ── */
+    @media (max-width: 1023px) {
+        #studioWrap { height: 100%; }
+    }
+
+    /* ════════════════════════════════════════════════════════
+       MOBILE  ≤ 639 px
+       ════════════════════════════════════════════════════════ */
+    @media (max-width: 639px) {
+
+        /* ── Hide flow strip – reclaim 72 px of canvas width ── */
+        #flowStrip { display: none !important; }
+
+        /* ── Canvas info badge: drop the flowStrip offset ──── */
+        #canvasInfo {
+            right: 0.75rem;
+            gap: 0.5rem;
+            padding: 0.375rem 0.625rem;
+            font-size: 0.65rem;
+        }
+        /* Hide secondary info to save space */
+        #canvasInfo #sessionLabel,
+        #canvasInfo span.text-slate-700 { display: none; }
+
+        /* ── Canvas image: use more screen ──────────────────── */
+        #canvasImageContainer {
+            inset: 0 0 55vh 0; /* reserve space for bottom minichat sheet */
+            padding: 3.5rem 0.5rem 0.5rem;
+        }
+        #canvasMainImage {
+            max-width: min(92vw, 640px);
+            max-height: 34vh;
+        }
+
+        /* Keep empty-state content inside visible canvas area (above minichat) */
+        #canvasEmptyHint {
+            inset: 0 0 55vh 0;
+            padding: 0.5rem;
+            justify-content: center;
+        }
+
+        /* ── Quick-action chips: constrain width ─────────────── */
+        #canvasQuickActions { max-width: calc(100vw - 2rem); }
+
+        /* ── Toolbar: tighter padding on small screens ──────── */
+        #canvasToolbar { padding: 0.375rem 0.5rem; gap: 0.375rem; }
+        #canvasToolbar span.text-xs { font-size: 0.7rem; }
+
+        /* ── Example cards: smaller + wrapped (no horizontal scroll) ── */
+        .canvas-example-card { width: 82px; height: 82px; }
+        #exampleCardsRow {
+            overflow-x: hidden;
+            max-width: calc(100vw - 1.25rem);
+            padding-bottom: 6px;
+            scrollbar-width: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            row-gap: 0.5rem;
+        }
+        #exampleCardsRow::-webkit-scrollbar { display: none; }
+
+        /* ── Minichat: full-width bottom sheet ──────────────── */
+        #minichat {
+            width: calc(100vw - 1.5rem) !important;
+            right: 0.75rem !important;
+            left: auto !important;
+            bottom: 0.75rem !important;
+            height: 52vh;
+            max-height: 52vh;
+        }
+        #minichatMessages { max-height: none; }
+        #minichatFab {
+            right: 0.75rem !important;
+            bottom: 0.75rem !important;
+        }
+
+        /* ── Sessions modal: full screen with small margin ───── */
+        .sess-modal-backdrop { padding: 0.75rem; }
+        .sess-modal-inner { border-radius: 1rem; max-height: 88vh; }
+        /* Search input: narrower to fit flex row */
+        #sessionSearch { width: 6rem; }
+    }
+
+    /* ════════════════════════════════════════════════════════
+       TABLET  640 px – 1023 px
+       ════════════════════════════════════════════════════════ */
+    @media (min-width: 640px) and (max-width: 1023px) {
+
+        /* ── Narrower minichat so it doesn't crowd the canvas ── */
+        #minichat {
+            width: 320px !important;
+            right: calc(72px + 1rem) !important;
+            max-height: 50vh;
+        }
+        #minichatFab { right: calc(72px + 1rem) !important; }
+
+        /* ── Slightly smaller example cards ─────────────────── */
+        .canvas-example-card { width: 118px; height: 118px; }
+
+        /* ── Canvas image: allow a bit more width ────────────── */
+        #canvasMainImage { max-width: min(80%, 640px); }
+    }
+
+    /* Mobile/tablet generation mode: collapse chat drawer + reclaim stage space */
+    @media (max-width: 1023px) {
+        body.mobile-canvas-generating #minichat {
+            max-height: 52px !important;
+        }
+        body.mobile-canvas-generating #canvasImageContainer,
+        body.mobile-canvas-generating #canvasEmptyHint {
+            inset: 0 !important;
+        }
+        body.mobile-canvas-generating #canvasStage {
+            border-bottom: none !important;
+        }
+    }
 </style>
 @endpush
 
@@ -463,15 +685,41 @@
 
         {{-- Empty hint --}}
         <div id="canvasEmptyHint">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-white/5 flex items-center justify-center mb-4">
-                <span class="material-symbols-outlined text-3xl text-slate-700">image_search</span>
-            </div>
-            <p class="text-sm font-medium text-slate-700">Use the minichat to generate images</p>
-            <p class="text-xs text-slate-800 mt-1">They'll appear here on the canvas</p>
-            <div class="mt-4 flex items-center gap-2 text-xs text-slate-700">
-                <span class="material-symbols-outlined text-sm">south_east</span>
-                <span>Chat panel is bottom-right</span>
-            </div>
+            @if(count($examples) > 0)
+                {{-- Shuffled example images (2-3 shown, tooltips on hover) --}}
+                <p class="text-xs text-slate-700 mb-3 tracking-wide uppercase" style="pointer-events:none; font-size:10px; letter-spacing:.08em;">Try an example</p>
+                <div id="exampleCardsRow" class="flex gap-3 mb-4">
+                    @foreach($examples as $ex)
+                    <button class="canvas-example-card" onclick="useExamplePrompt({{ json_encode($ex['prompt']) }})">
+                        <img src="{{ $ex['image_url'] }}"
+                             alt="Example"
+                             class="canvas-example-img">
+                        <div class="canvas-example-tooltip">{{ $ex['prompt'] }}</div>
+                        <span class="canvas-example-use-label">Use prompt</span>
+                    </button>
+                    @endforeach
+                </div>
+                <p class="text-xs text-slate-800" style="pointer-events:none;">
+                    or describe your own in the chat&nbsp;
+                    <span class="material-symbols-outlined text-xs align-middle" style="font-size:12px;">south_east</span>
+                </p>
+            @else
+                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/10 to-secondary/10 border border-white/5 flex items-center justify-center mb-4">
+                    <span class="material-symbols-outlined text-3xl text-slate-700">image_search</span>
+                </div>
+                <p class="text-sm font-medium text-slate-700">Use the minichat to generate images</p>
+                <p class="text-xs text-slate-800 mt-1">They'll appear here on the canvas</p>
+                <div class="mt-4 flex items-center gap-2 text-xs text-slate-700">
+                    <span class="material-symbols-outlined text-sm">south_east</span>
+                    <span>Chat panel is bottom-right</span>
+                </div>
+            @endif
+        </div>
+
+        {{-- Centered generating state (mobile/tablet drawer mode friendly) --}}
+        <div id="canvasGeneratingOverlay">
+            <div class="canvas-gen-ring"></div>
+            <p class="text-xs text-slate-400">Generating image...</p>
         </div>
 
         {{-- Main canvas image container --}}
@@ -484,15 +732,15 @@
                 <div id="canvasImageActions">
                     <button onclick="downloadCanvas()"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-medium transition-colors backdrop-blur-sm border border-white/10">
-                        <span class="material-symbols-outlined text-sm">download</span> Download
+                        <span class="material-symbols-outlined text-sm">download</span>
                     </button>
                     <button onclick="useCanvasAsRef()"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary/80 hover:bg-primary text-white text-xs font-medium transition-colors backdrop-blur-sm">
-                        <span class="material-symbols-outlined text-sm">recycling</span> Use as ref
+                        <span class="material-symbols-outlined text-sm">recycling</span>
                     </button>
                     <button onclick="openLightbox(document.getElementById('canvasMainImage').src)"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-medium transition-colors backdrop-blur-sm border border-white/10">
-                        <span class="material-symbols-outlined text-sm">open_in_full</span> Expand
+                        <span class="material-symbols-outlined text-sm">open_in_full</span>
                     </button>
                 </div>
                 </div>{{-- /.relative --}}
@@ -563,7 +811,11 @@
         {{-- Image preview --}}
         <div id="miniRefPreview" class="hidden mb-2">
             <div class="relative inline-flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-primary/10 border border-primary/20">
-                <img id="miniRefThumb" src="" class="w-7 h-7 rounded object-cover">
+                <img id="miniRefThumb"
+                     src=""
+                     class="w-7 h-7 rounded object-cover cursor-zoom-in"
+                     title="Open image"
+                     onclick="if (this.src) openLightbox(this.src)">
                 <span class="text-[10px] text-primary font-medium">Reference image</span>
                 <button onclick="removeRef()" class="size-4 rounded-full bg-white/10 hover:bg-red-500/50 text-white flex items-center justify-center ml-1">
                     <span class="material-symbols-outlined text-[10px]">close</span>
@@ -668,19 +920,21 @@ const S = {
     isGenerating:   false,
     minichatOpen:   true,
     activeFlowIdx:  -1,
+    preGenMiniOpen: true,
 };
 const CSRF = document.querySelector('meta[name="csrf-token"]').content;
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    // Auto-collapse sidebar for full-screen canvas experience
+    // Auto-collapse sidebar for full-screen canvas experience (desktop only)
     const sidebar = document.getElementById('appSidebar');
     const main    = document.getElementById('appMain');
     const icon    = document.getElementById('sidebarToggleIcon');
     if (sidebar && !sidebar.classList.contains('sidebar-collapsed')) {
         sidebar.classList.add('sidebar-collapsed');
-        if (main)  main.style.marginLeft = '4.5rem';
-        if (icon)  icon.textContent = 'chevron_right';
+        // On mobile the sidebar slides in via -translate-x-full, not margin — skip margin
+        if (main && window.innerWidth >= 1024) main.style.marginLeft = '4.5rem';
+        if (icon) icon.textContent = 'chevron_right';
     }
 
     newChat();
@@ -895,7 +1149,13 @@ function renderMiniMessages() {
 
 function buildMiniMsgHTML(msg) {
     if (msg.role === 'user') {
-        const thumbHTML = msg.thumb ? `<img src="${esc(msg.thumb)}" class="w-10 h-10 rounded-lg object-cover mb-1.5 border border-white/10">` : '';
+        const thumbHTML = msg.thumb
+            ? `<img src="${esc(msg.thumb)}"
+                    data-full="${esc(msg.thumb)}"
+                    onclick="openLightbox(this.dataset.full)"
+                    class="w-10 h-10 rounded-lg object-cover mb-1.5 border border-white/10 cursor-zoom-in"
+                    title="Open image">`
+            : '';
         return `
         <div class="mini-msg-user flex justify-end">
             <div class="mini-bubble px-3 py-2">
@@ -929,15 +1189,11 @@ function appendMiniMessage(msg) {
 }
 
 function appendMiniError(msg) {
-    const el  = document.getElementById('minichatMessages');
-    const div = document.createElement('div');
-    div.className = 'flex justify-center';
-    div.innerHTML = `
-        <div class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-[11px]">
-            <span class="material-symbols-outlined text-xs">error</span>${esc(msg)}
-        </div>`;
-    el.appendChild(div);
-    el.scrollTop = el.scrollHeight;
+    if (window.showApiErrorToast) {
+        window.showApiErrorToast({ message: msg });
+    } else if (window.appToast) {
+        window.appToast(msg, 'error');
+    }
 }
 
 // Typing indicator
@@ -1207,10 +1463,39 @@ function setupDragDrop() {
 
 // ── UI helpers ────────────────────────────────────────────────────────────────
 function setMiniGenerating(gen) {
+    applyMobileGeneratingDrawer(gen);
     document.getElementById('miniSendBtn').disabled      = gen;
     document.getElementById('miniSendIcon').textContent  = gen ? 'hourglass_top' : 'arrow_upward';
     if (gen) document.getElementById('miniSendIcon').classList.add('animate-spin');
     else     document.getElementById('miniSendIcon').classList.remove('animate-spin');
+    const overlay = document.getElementById('canvasGeneratingOverlay');
+    if (overlay) overlay.style.display = gen ? 'flex' : 'none';
+}
+
+function isMobileTabletViewport() {
+    return window.matchMedia('(max-width: 1023px)').matches;
+}
+
+function applyMobileGeneratingDrawer(isGenerating) {
+    const panel = document.getElementById('minichat');
+    const icon = document.getElementById('minichatCollapseIcon');
+    if (!panel || !icon) return;
+
+    if (!isGenerating || !isMobileTabletViewport()) {
+        document.body.classList.remove('mobile-canvas-generating');
+        if (isMobileTabletViewport()) {
+            S.minichatOpen = S.preGenMiniOpen;
+            panel.classList.toggle('collapsed', !S.minichatOpen);
+            icon.textContent = S.minichatOpen ? 'expand_more' : 'expand_less';
+        }
+        return;
+    }
+
+    S.preGenMiniOpen = S.minichatOpen;
+    document.body.classList.add('mobile-canvas-generating');
+    S.minichatOpen = false;
+    panel.classList.add('collapsed');
+    icon.textContent = 'expand_less';
 }
 
 function miniResize(el) {
@@ -1220,6 +1505,19 @@ function miniResize(el) {
 
 function handleMiniKey(e) {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMiniChat(); }
+}
+
+window.addEventListener('resize', () => {
+    if (!isMobileTabletViewport()) applyMobileGeneratingDrawer(false);
+});
+
+// ── Canvas example prompts ────────────────────────────────────────────────────
+function useExamplePrompt(prompt) {
+    const input = document.getElementById('miniPromptInput');
+    if (!input) return;
+    input.value = prompt;
+    miniResize(input);
+    input.focus();
 }
 
 // ── Quick actions ─────────────────────────────────────────────────────────────
