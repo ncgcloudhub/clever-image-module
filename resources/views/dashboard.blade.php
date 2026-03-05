@@ -8,100 +8,102 @@
 <section class="relative rounded-2xl sm:rounded-3xl overflow-hidden p-4 sm:p-6 lg:p-8">
 <div class="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/10 to-transparent z-0"></div>
 <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 z-0"></div>
-<div class="relative z-10 max-w-2xl">
-<h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-2 sm:mb-3 leading-tight">Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{{ auth()->user()->name ?? 'User' }}!</span></h2>
-<p class="text-xs sm:text-sm lg:text-base text-slate-400 font-medium">What will you imagine today? Your creative tools are ready and waiting.</p>
+<div class="relative z-10 grid gap-4 sm:gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] lg:gap-5">
+    <div class="max-w-2xl lg:max-w-none">
+        <h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-2 sm:mb-3 leading-tight">Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{{ auth()->user()->name ?? 'User' }}!</span></h2>
+        <p class="text-xs sm:text-sm lg:text-base text-slate-400 font-medium">What will you imagine today? Your creative tools are ready and waiting.</p>
 
-<!-- Quick Start Prompt -->
-<section class="mt-4 sm:mt-5 glass p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-primary/20 bg-gradient-to-b from-white/[0.02] to-transparent">
-    <div class="flex flex-wrap items-center gap-2 mb-3">
-        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
-            <span class="material-symbols-outlined text-primary text-[18px]">rocket_launch</span>
-            Quick Start
-        </h3>
-        <span class="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full font-bold uppercase tracking-widest border border-primary/20 sm:ml-auto">Nano Banana AI</span>
+        <!-- Quick Start Prompt -->
+        <section class="mt-4 sm:mt-5 glass p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-primary/20 bg-gradient-to-b from-white/[0.02] to-transparent">
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+                <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-primary text-[18px]">rocket_launch</span>
+                    Quick Start
+                </h3>
+                <span class="text-[10px] px-2 py-0.5 bg-primary/10 text-primary rounded-full font-bold uppercase tracking-widest border border-primary/20 sm:ml-auto">Nano Banana AI</span>
+            </div>
+            <div class="relative">
+                <textarea
+                    id="quickPrompt"
+                    class="w-full bg-background-dark/50 border border-white/10 rounded-xl p-3 pr-12 sm:pr-14 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none"
+                    placeholder="Describe the image you want to create..."
+                    rows="2"
+                    onkeydown="if(event.ctrlKey && event.key==='Enter') quickGenerate()"
+                ></textarea>
+                <button
+                    id="quickGenerateBtn"
+                    onclick="quickGenerate()"
+                    aria-label="Generate image"
+                    data-tooltip="Ctrl+Enter to generate" data-tooltip-pos="top"
+                    class="absolute bottom-2 right-2 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white w-9 h-9 sm:w-10 sm:h-10 rounded-lg text-sm font-bold flex items-center justify-center transition-all shadow-lg shadow-primary/20"
+                >
+                    <span id="quickBtnText" class="sr-only">Generate</span>
+                    <span id="quickBtnIcon" class="material-symbols-outlined text-lg">auto_fix</span>
+                </button>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-3 items-center">
+                <span class="text-[10px] text-slate-500 shrink-0">Presets:</span>
+                <button onclick="setPreset('Photorealistic portrait in golden hour lighting, 8k, ultra detailed, cinematic')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Photorealistic</button>
+                <button onclick="setPreset('Cyberpunk city street at night in 8k resolution, cinematic lighting, neon blue and pink, rain reflections')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Cyberpunk</button>
+                <button onclick="setPreset('3D render of a futuristic spaceship in deep space, volumetric lighting, ultra realistic, 4k')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">3D</button>
+            </div>
+        </section>
     </div>
-    <div class="relative">
-        <textarea
-            id="quickPrompt"
-            class="w-full bg-background-dark/50 border border-white/10 rounded-xl p-3 pr-12 sm:pr-14 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none"
-            placeholder="Describe the image you want to create..."
-            rows="2"
-            onkeydown="if(event.ctrlKey && event.key==='Enter') quickGenerate()"
-        ></textarea>
-        <button
-            id="quickGenerateBtn"
-            onclick="quickGenerate()"
-            aria-label="Generate image"
-            data-tooltip="Ctrl+Enter to generate" data-tooltip-pos="top"
-            class="absolute bottom-2 right-2 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white w-9 h-9 sm:w-10 sm:h-10 rounded-lg text-sm font-bold flex items-center justify-center transition-all shadow-lg shadow-primary/20"
-        >
-            <span id="quickBtnText" class="sr-only">Generate</span>
-            <span id="quickBtnIcon" class="material-symbols-outlined text-lg">auto_fix</span>
-        </button>
-    </div>
-    <div class="flex flex-wrap gap-2 mt-3 items-center">
-        <span class="text-[10px] text-slate-500 shrink-0">Presets:</span>
-        <button onclick="setPreset('Photorealistic portrait in golden hour lighting, 8k, ultra detailed, cinematic')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Photorealistic</button>
-        <button onclick="setPreset('Cyberpunk city street at night in 8k resolution, cinematic lighting, neon blue and pink, rain reflections')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Cyberpunk</button>
-        <button onclick="setPreset('3D render of a futuristic spaceship in deep space, volumetric lighting, ultra realistic, 4k')" class="text-[10px] px-2.5 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">3D</button>
-    </div>
-</section>
+
+    <!-- Live API Stats -->
+    <section class="glass rounded-2xl p-3 border border-white/10">
+        <div class="flex items-center justify-between gap-3 mb-3">
+            <p class="text-xs sm:text-sm font-bold text-white">Live Account Snapshot</p>
+            <span id="dashboardLiveStatsStatus" class="text-[10px] text-slate-500">Loading...</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-1 gap-2.5">
+            <div class="group rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/25 p-2.5 hover:translate-y-[-2px] transition-all">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wide text-slate-300 font-semibold">Total Images</p>
+                        <p id="dashboard-live-total-images" class="text-base sm:text-lg font-black text-white mt-0.5">--</p>
+                    </div>
+                    <div class="p-2 rounded-lg bg-primary/20 text-primary border border-primary/30">
+                        <span class="material-symbols-outlined text-base">image</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group rounded-xl bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-400/25 p-2.5 hover:translate-y-[-2px] transition-all">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wide text-slate-300 font-semibold">Credits Used</p>
+                        <p id="dashboard-live-credits-used" class="text-base sm:text-lg font-black text-white mt-0.5">--</p>
+                    </div>
+                    <div class="p-2 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-300/30">
+                        <span class="material-symbols-outlined text-base">local_fire_department</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group rounded-xl bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-400/25 p-2.5 hover:translate-y-[-2px] transition-all">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wide text-slate-300 font-semibold">Credits Left</p>
+                        <p id="dashboard-live-credits-left" class="text-base sm:text-lg font-black text-white mt-0.5">--</p>
+                    </div>
+                    <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-300/30">
+                        <span class="material-symbols-outlined text-base">payments</span>
+                    </div>
+                </div>
+            </div>
+            <div class="group rounded-xl bg-gradient-to-br from-secondary/25 via-secondary/10 to-transparent border border-secondary/25 p-2.5 hover:translate-y-[-2px] transition-all">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[10px] uppercase tracking-wide text-slate-300 font-semibold">Tokens Left</p>
+                        <p id="dashboard-live-tokens-left" class="text-base sm:text-lg font-black text-white mt-0.5">--</p>
+                    </div>
+                    <div class="p-2 rounded-lg bg-secondary/20 text-secondary border border-secondary/30">
+                        <span class="material-symbols-outlined text-base">toll</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
-</section>
-
-<!-- Live API Stats (below welcome card) -->
-<section class="glass rounded-2xl p-3 border border-white/10">
-    <div class="flex items-center justify-between gap-3 mb-3">
-        <p class="text-xs sm:text-sm font-bold text-white">Live Account Snapshot</p>
-        <span id="dashboardLiveStatsStatus" class="text-[10px] text-slate-500">Loading...</span>
-    </div>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-        <div class="group rounded-xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/25 p-2.5 hover:translate-y-[-2px] transition-all">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <p class="text-[10px] uppercase tracking-wide text-slate-300 font-semibold">Total Images</p>
-                    <p id="dashboard-live-total-images" class="text-base sm:text-lg font-black text-white mt-0.5">--</p>
-                </div>
-                <div class="p-2 rounded-lg bg-primary/20 text-primary border border-primary/30">
-                    <span class="material-symbols-outlined text-base">image</span>
-                </div>
-            </div>
-        </div>
-        <div class="group rounded-xl bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-400/25 p-2.5 hover:translate-y-[-2px] transition-all">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <p class="text-[10px] uppercase tracking-wide text-slate-300 font-semibold">Credits Used</p>
-                    <p id="dashboard-live-credits-used" class="text-base sm:text-lg font-black text-white mt-0.5">--</p>
-                </div>
-                <div class="p-2 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-300/30">
-                    <span class="material-symbols-outlined text-base">local_fire_department</span>
-                </div>
-            </div>
-        </div>
-        <div class="group rounded-xl bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-400/25 p-2.5 hover:translate-y-[-2px] transition-all">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <p class="text-[10px] uppercase tracking-wide text-slate-300 font-semibold">Credits Left</p>
-                    <p id="dashboard-live-credits-left" class="text-base sm:text-lg font-black text-white mt-0.5">--</p>
-                </div>
-                <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-300/30">
-                    <span class="material-symbols-outlined text-base">payments</span>
-                </div>
-            </div>
-        </div>
-        <div class="group rounded-xl bg-gradient-to-br from-secondary/25 via-secondary/10 to-transparent border border-secondary/25 p-2.5 hover:translate-y-[-2px] transition-all">
-            <div class="flex items-start justify-between gap-3">
-                <div>
-                    <p class="text-[10px] uppercase tracking-wide text-slate-300 font-semibold">Tokens Left</p>
-                    <p id="dashboard-live-tokens-left" class="text-base sm:text-lg font-black text-white mt-0.5">--</p>
-                </div>
-                <div class="p-2 rounded-lg bg-secondary/20 text-secondary border border-secondary/30">
-                    <span class="material-symbols-outlined text-base">toll</span>
-                </div>
-            </div>
-        </div>
-    </div>
 </section>
 
 <!-- Discover More Tools -->
