@@ -125,6 +125,17 @@
             <span class="material-symbols-outlined text-sm">add_circle</span>
             Refill Credits
         </a>
+        @if(!empty($gitMeta['short_hash']))
+            <a
+                href="{{ $gitMeta['commit_url'] ?: '#' }}"
+                @if(!empty($gitMeta['commit_url'])) target="_blank" rel="noopener noreferrer" @else onclick="if (navigator.clipboard) { navigator.clipboard.writeText('{{ $gitMeta['full_hash'] }}'); } return false;" @endif
+                class="sidebar-label mt-2 block text-center text-[10px] text-slate-500 hover:text-primary transition-colors"
+                data-tooltip="{{ !empty($gitMeta['commit_url']) ? 'Open commit details' : 'Copy full commit ID' }}"
+                data-tooltip-pos="top"
+            >
+                Commit {{ $gitMeta['short_hash'] }}
+            </a>
+        @endif
     </div>
 </div>
 
