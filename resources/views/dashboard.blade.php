@@ -9,7 +9,7 @@
 <div class="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/10 to-transparent z-0"></div>
 <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 z-0"></div>
 <div class="relative z-10 max-w-2xl">
-<h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-2 sm:mb-3 leading-tight">Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{{ auth()->user()->name ?? 'User' }}!</span></h2>
+<h2 class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white mb-2 sm:mb-3 leading-tight">Welcome backs, <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{{ auth()->user()->name ?? 'User' }}!</span></h2>
 <p class="text-xs sm:text-sm lg:text-base text-slate-400 font-medium">What will you imagine today? Your creative tools are ready and waiting.</p>
 
 <!-- Quick Start Prompt -->
