@@ -1126,8 +1126,16 @@
         const view = document.getElementById('toolInterfaceView');
         if (!view) return;
 
-        if (!isGenerating || !isMobileTabletViewport()) {
+        if (!isMobileTabletViewport()) {
             view.classList.remove('mobile-generating', 'mobile-drawer-collapsed', 'mobile-drawer-expanded');
+            updateMobileDrawerToggleUi();
+            return;
+        }
+
+        if (!isGenerating) {
+            // Keep drawer closed after generation; user can expand manually.
+            view.classList.add('mobile-generating', 'mobile-drawer-collapsed');
+            view.classList.remove('mobile-drawer-expanded');
             updateMobileDrawerToggleUi();
             return;
         }
