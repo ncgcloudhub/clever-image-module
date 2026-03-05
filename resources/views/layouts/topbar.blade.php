@@ -66,6 +66,10 @@
 <span class="material-symbols-outlined text-sm">account_balance_wallet</span>
 <span class="text-sm font-medium">Billing</span>
 </a>
+<a href="{{ route('stats') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-sm">bar_chart</span>
+<span class="text-sm font-medium">Stats</span>
+</a>
 <div class="border-t border-white/10 my-2"></div>
 <form method="POST" action="{{ route('logout') }}">
 @csrf
