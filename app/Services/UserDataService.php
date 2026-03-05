@@ -33,11 +33,6 @@ class UserDataService
         try {
             $url = $this->baseUrl . '/api/user/details';
 
-            Log::info('Fetching user details', [
-                'url' => $url,
-                'has_token' => !empty($accessToken),
-            ]);
-
             $response = $this->client->get($url, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $accessToken,
@@ -45,12 +40,6 @@ class UserDataService
             ]);
 
             $data = json_decode((string) $response->getBody(), true);
-
-            Log::info('User details response', [
-                'status' => $response->getStatusCode(),
-                'success' => $data['success'] ?? false,
-                'has_data' => isset($data['data']),
-            ]);
 
             if ($data['success'] ?? false) {
                 return $data['data'];

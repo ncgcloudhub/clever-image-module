@@ -4,9 +4,69 @@
 
 @push('styles')
 <style>
+    /* ── Page-level viewport fit (no page scroll) ─────────────────────────── */
+    #appMain {
+        height: 100dvh;
+        overflow: hidden;
+    }
+    #appMain > div {
+        padding: 0 !important;
+        height: calc(100dvh - 4rem); /* mobile topbar: h-16 */
+        overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+        #appMain > div { height: calc(100dvh - 5rem); } /* desktop topbar: h-20 */
+    }
+
+    /* Keep directory page usable inside fixed viewport */
+    #directoryView {
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 1rem;
+    }
+    @media (min-width: 640px) {
+        #directoryView { padding: 1.5rem; }
+        .tool-search-shell {
+            max-width: 18rem;
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+    }
+    @media (min-width: 1024px) {
+        #directoryView { padding: 2rem 2.5rem; }
+    }
+
+    /* Tool interface should use full available height without negative bleed */
+    #toolInterfaceView {
+        margin: 0 !important;
+        height: 100%;
+        overflow: hidden;
+    }
+    #toolInterfaceView > div {
+        height: 100%;
+        min-height: 0 !important;
+        overflow: hidden;
+    }
+
     .view-toggle button.active {
         background: rgba(19, 164, 236, 0.2);
         color: #13a4ec;
+    }
+    .tool-search-shell {
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        transform: translateX(-6px);
+        pointer-events: none;
+        transition: max-width 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+    }
+    .tool-search-shell.is-open {
+        max-width: 15rem;
+        opacity: 1;
+        transform: translateX(0);
+        pointer-events: auto;
     }
     .tool-card {
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -316,6 +376,96 @@
         from { opacity: 0; transform: translateY(12px); }
         to   { opacity: 1; transform: translateY(0); }
     }
+
+    /* ── Dark native select dropdown ────────────────────────────────── */
+    select {
+        color-scheme: dark;
+        background-color: #1a2030;
+        color: #e2e8f0;
+    }
+    select option {
+        background-color: #1a2030;
+        color: #e2e8f0;
+    }
+    select option:checked,
+    select option:hover {
+        background-color: rgba(19, 164, 236, 0.25);
+        color: #13a4ec;
+    }
+
+    /* ── Mobile fit: preview + controls visible together ──────────────────── */
+    @media (max-width: 1023px) {
+        #toolInterfaceView > div {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        #toolInterfaceView section:first-child {
+            order: 2;
+            width: 100% !important;
+            max-height: none !important;
+            min-height: 0;
+            flex: 1 1 auto;
+        }
+        #previewRightSection {
+            order: 1;
+            flex: 0 0 40%;
+            min-height: 40% !important;
+            padding: 0.75rem !important;
+            overflow-y: auto;
+        }
+        #previewContent {
+            min-height: 100% !important;
+        }
+        #previewControls {
+            top: 0.5rem !important;
+            right: 0.5rem !important;
+        }
+        #regeneratedSection {
+            width: 100% !important;
+            padding: 0.5rem !important;
+        }
+
+        /* While generating, the form becomes a bottom drawer and preview stays centered */
+        #toolInterfaceView.mobile-generating #previewRightSection {
+            order: 1;
+            flex: 1 1 auto !important;
+            min-height: 100% !important;
+            padding: 0.75rem !important;
+            overflow: hidden !important;
+        }
+        #toolInterfaceView.mobile-generating #previewContent {
+            min-height: 100% !important;
+            height: 100%;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        #toolInterfaceView.mobile-generating section:first-child {
+            order: 2;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 25;
+            max-height: min(74vh, 620px) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-bottom: none;
+            background: rgba(15, 17, 23, 0.95);
+            backdrop-filter: blur(10px);
+            transition: transform 0.28s ease;
+            box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.45);
+        }
+        #toolInterfaceView.mobile-generating.mobile-drawer-collapsed section:first-child {
+            transform: translateY(calc(100% - 64px));
+        }
+        #toolInterfaceView.mobile-generating.mobile-drawer-expanded section:first-child {
+            transform: translateY(0);
+        }
+        #toolInterfaceView.mobile-generating #mobileDrawerToggle {
+            display: inline-flex !important;
+        }
+    }
 </style>
 @endpush
 
@@ -323,46 +473,56 @@
 <div class="h-full">
 
 <!-- Floating Test Button (dev only) -->
-<button onclick="testRegenerateUI()" id="floatingTestBtn"
+{{-- <button onclick="testRegenerateUI()" id="floatingTestBtn"
     class="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-4 py-2.5 bg-slate-800/90 hover:bg-slate-700/90 border border-white/10 hover:border-primary/40 rounded-full shadow-xl backdrop-blur-sm text-xs text-slate-300 hover:text-primary transition-all group">
     <span class="material-symbols-outlined text-sm group-hover:animate-spin" style="animation-duration:2s">science</span>
     Test Regenerate UI
-</button>
+</button> --}}
 
 <!-- Directory/Grid View -->
 <div id="directoryView">
 <!-- Search and Filter Bar -->
-<div class="glass p-4 rounded-xl mb-6 border border-white/5">
-    <div class="flex flex-col md:flex-row gap-4">
-        <!-- Search -->
-        <div class="flex-1 relative group">
-            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">search</span>
-            <input
-                type="text"
-                id="toolSearch"
-                class="w-full bg-white/5 border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-sm focus:ring-primary focus:border-primary transition-all placeholder:text-slate-600"
-                placeholder="Search tools by name or description..."
-            />
+<div class="glass rounded-xl p-2 mb-6 border border-white/5 bg-white/[0.03]">
+    <div class="flex items-center gap-2">
+        <button id="toolSearchToggle" type="button" class="h-9 w-9 inline-flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-primary/40 transition-all" aria-label="Toggle search">
+            <span class="material-symbols-outlined text-[18px]">search</span>
+        </button>
+
+        <div id="toolSearchShell" class="tool-search-shell">
+            <div class="relative">
+                <input
+                    type="text"
+                    id="toolSearch"
+                    class="w-full h-9 bg-white/5 border-white/10 rounded-lg pl-3 pr-9 text-sm focus:ring-primary focus:border-primary transition-all placeholder:text-slate-600"
+                    placeholder="Search tools by name or description..."
+                />
+                <button id="toolSearchClear" type="button" class="hidden absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors" aria-label="Clear search">
+                    <span class="material-symbols-outlined text-base">close</span>
+                </button>
+            </div>
         </div>
 
         <!-- View Toggle -->
-        <div class="view-toggle flex items-center gap-2 bg-white/5 p-1 rounded-lg">
+        <div class="view-toggle ml-auto flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/10">
             <button
                 id="gridViewBtn"
-                class="active p-2 rounded-lg transition-all"
+                class="active h-7 w-7 inline-flex items-center justify-center rounded-md transition-all"
                 onclick="setView('grid')"
+                aria-label="Grid view"
             >
-                <span class="material-symbols-outlined text-sm">grid_view</span>
+                <span class="material-symbols-outlined text-[16px]">grid_view</span>
             </button>
             <button
                 id="listViewBtn"
-                class="p-2 rounded-lg transition-all"
+                class="h-7 w-7 inline-flex items-center justify-center rounded-md transition-all"
                 onclick="setView('list')"
+                aria-label="List view"
             >
-                <span class="material-symbols-outlined text-sm">view_list</span>
+                <span class="material-symbols-outlined text-[16px]">view_list</span>
             </button>
         </div>
     </div>
+    <p class="text-[11px] text-slate-400 mt-1.5 px-1">Tip: search by tool name or short description.</p>
 </div>
 
 <!-- Tools Container -->
@@ -377,10 +537,10 @@
 </div>
 
 <!-- Tool Interface View -->
-<div id="toolInterfaceView" class="hidden -m-10">
-    <div class="flex min-h-screen overflow-hidden">
+<div id="toolInterfaceView" class="hidden -m-4 sm:-m-6 lg:-m-10">
+    <div class="flex flex-col lg:flex-row lg:min-h-[calc(100vh-4rem)] xl:min-h-[calc(100vh-5rem)] lg:overflow-hidden">
         <!-- Left Configuration Panel -->
-        <section class="w-80 lg:w-96 glass-panel border-r border-white/5 flex flex-col overflow-hidden">
+        <section class="w-full lg:w-80 xl:w-96 glass-panel border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col max-h-[55vh] lg:max-h-none overflow-hidden">
             <!-- Header with Back Button -->
             <div class="p-4 border-b border-white/5 flex items-center gap-3 flex-shrink-0">
                 <button onclick="backToDirectory()" class="p-2 hover:bg-white/5 rounded-lg transition-colors flex-shrink-0">
@@ -394,6 +554,16 @@
                     <h2 id="toolInterfaceTitle" class="font-bold text-white text-sm truncate"></h2>
                     <p class="text-[10px] text-slate-500">Configure & Generate</p>
                 </div>
+                <button
+                    id="mobileDrawerToggle"
+                    type="button"
+                    onclick="toggleMobileFormDrawer()"
+                    class="ml-auto hidden items-center gap-1.5 rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold text-slate-300 hover:text-white hover:border-primary/40 transition-colors"
+                    aria-label="Toggle form drawer"
+                >
+                    <span class="material-symbols-outlined text-sm" id="mobileDrawerToggleIcon">keyboard_arrow_up</span>
+                    <span id="mobileDrawerToggleText">Open</span>
+                </button>
             </div>
 
             <!-- Form Content - Scrollable -->
@@ -422,7 +592,7 @@
         </section>
 
         <!-- Right Preview Area -->
-        <section id="previewRightSection" class="flex-1 bg-black/40 flex flex-col items-center p-6 relative overflow-y-auto custom-scrollbar">
+        <section id="previewRightSection" class="flex-1 min-h-[50vh] lg:min-h-0 bg-black/40 flex flex-col items-center p-4 lg:p-6 relative overflow-y-auto custom-scrollbar">
             <!-- Preview Controls -->
             <div id="previewControls" class="absolute top-4 right-4 flex items-center gap-2 z-20 hidden">
                 <div class="bg-background-dark/90 backdrop-blur-md border border-white/10 rounded-lg flex p-1 shadow-xl">
@@ -520,11 +690,16 @@
 
             <!-- Modification Prompt -->
             <div>
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">Modification Prompt</label>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Modification Prompt</label>
+                    <button type="button" onclick="openPromptModal('regenPrompt', 'Modification Prompt')" class="flex items-center gap-1 text-slate-500 hover:text-primary transition-colors" title="Expand prompt editor">
+                        <span class="material-symbols-outlined text-base">open_in_full</span>
+                    </button>
+                </div>
                 <textarea
                     id="regenPrompt"
                     rows="3"
-                    class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-none"
+                    class="w-full bg-white/5 border border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-y"
                     placeholder="Describe how you want to modify the image..."
                 ></textarea>
             </div>
@@ -712,6 +887,41 @@
     <div id="imageGallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
 </div>
 </div>
+
+<!-- Image Lightbox -->
+<div id="imageLightbox" class="hidden fixed inset-0 z-[300] flex items-center justify-center p-4" onclick="closeImageLightbox()">
+    <div class="absolute inset-0 bg-black/92 backdrop-blur-sm"></div>
+    <button onclick="event.stopPropagation(); closeImageLightbox()" class="absolute top-4 right-4 z-10 p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white/70 hover:text-white transition-all">
+        <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+    <img id="lightboxImage" src="" alt="Full size preview"
+        class="relative z-10 max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+        onclick="event.stopPropagation()">
+</div>
+
+<!-- Prompt Expand Modal -->
+<div id="promptExpandModal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closePromptModal()"></div>
+    <div class="relative w-full max-w-2xl bg-slate-900 border border-white/10 rounded-2xl shadow-2xl flex flex-col gap-4 p-6">
+        <div class="flex items-center justify-between">
+            <h3 id="promptModalTitle" class="text-sm font-bold text-slate-200 uppercase tracking-widest">Prompt</h3>
+            <button onclick="closePromptModal()" class="text-slate-500 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-xl">close</span>
+            </button>
+        </div>
+        <textarea
+            id="promptModalTextarea"
+            rows="12"
+            class="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-y"
+            placeholder="Enter your prompt here..."
+        ></textarea>
+        <div class="flex justify-end gap-3">
+            <button onclick="closePromptModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white border border-white/10 hover:border-white/20 rounded-lg transition-all">Cancel</button>
+            <button onclick="applyPromptModal()" class="px-5 py-2 text-xs font-bold bg-primary hover:bg-primary/80 text-white rounded-lg transition-all">Apply</button>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -733,6 +943,11 @@
 
             const data = await response.json();
 
+            if (response.status === 401) {
+                window.location.href = '{{ route("login") }}';
+                return;
+            }
+
             if (!response.ok || !data.success) {
                 throw new Error(data.error || 'Failed to load tools');
             }
@@ -741,13 +956,15 @@
             renderTools(availableTools);
         } catch (e) {
             container.innerHTML = `
-                <div class="glass p-8 rounded-2xl border border-red-500/20 bg-red-500/5">
-                    <div class="flex items-center gap-3 text-red-400">
-                        <span class="material-symbols-outlined">error</span>
-                        <p>Error: ${e.message}</p>
-                    </div>
+                <div class="glass p-8 rounded-2xl text-center">
+                    <p class="text-slate-400">Unable to load tools right now.</p>
                 </div>
             `;
+            if (window.showApiErrorToast) {
+                window.showApiErrorToast({ message: e && e.message ? e.message : 'Failed to load tools.' });
+            } else if (window.appToast) {
+                window.appToast(e && e.message ? e.message : 'Failed to load tools.', 'error');
+            }
         }
     }
 
@@ -838,6 +1055,7 @@
     }
 
     function backToDirectory() {
+        setMobileGeneratingDrawerState(false);
         document.getElementById('toolInterfaceView').classList.add('hidden');
         document.getElementById('directoryView').classList.remove('hidden');
         document.getElementById('toolInterfaceForm').reset();
@@ -853,7 +1071,7 @@
         const icon    = document.getElementById('sidebarToggleIcon');
         if (sidebar && !sidebar.classList.contains('sidebar-collapsed')) {
             sidebar.classList.add('sidebar-collapsed');
-            if (main) main.style.marginLeft = '4.5rem';
+            if (window.innerWidth >= 1024 && main) main.style.marginLeft = '4.5rem';
             if (icon) icon.textContent = 'chevron_right';
         }
     }
@@ -864,12 +1082,13 @@
         const icon    = document.getElementById('sidebarToggleIcon');
         if (sidebar) {
             sidebar.classList.remove('sidebar-collapsed');
-            if (main) main.style.marginLeft = '';
+            if (window.innerWidth >= 1024 && main) main.style.marginLeft = '';
             if (icon) icon.textContent = 'chevron_left';
         }
     }
 
     function resetPreview() {
+        setMobileGeneratingDrawerState(false);
         exitRegenLayout();
         const previewContent = document.getElementById('previewContent');
         previewContent.innerHTML = `
@@ -888,6 +1107,46 @@
         window.currentImageData = null;
     }
 
+    function isMobileTabletViewport() {
+        return window.matchMedia('(max-width: 1023px)').matches;
+    }
+
+    function updateMobileDrawerToggleUi() {
+        const view = document.getElementById('toolInterfaceView');
+        const icon = document.getElementById('mobileDrawerToggleIcon');
+        const text = document.getElementById('mobileDrawerToggleText');
+        if (!view || !icon || !text) return;
+
+        const expanded = view.classList.contains('mobile-drawer-expanded');
+        icon.textContent = expanded ? 'keyboard_arrow_down' : 'keyboard_arrow_up';
+        text.textContent = expanded ? 'Close' : 'Open';
+    }
+
+    function setMobileGeneratingDrawerState(isGenerating) {
+        const view = document.getElementById('toolInterfaceView');
+        if (!view) return;
+
+        if (!isGenerating || !isMobileTabletViewport()) {
+            view.classList.remove('mobile-generating', 'mobile-drawer-collapsed', 'mobile-drawer-expanded');
+            updateMobileDrawerToggleUi();
+            return;
+        }
+
+        view.classList.add('mobile-generating', 'mobile-drawer-collapsed');
+        view.classList.remove('mobile-drawer-expanded');
+        updateMobileDrawerToggleUi();
+    }
+
+    function toggleMobileFormDrawer() {
+        const view = document.getElementById('toolInterfaceView');
+        if (!view || !view.classList.contains('mobile-generating')) return;
+
+        const isCollapsed = view.classList.contains('mobile-drawer-collapsed');
+        view.classList.toggle('mobile-drawer-collapsed', !isCollapsed);
+        view.classList.toggle('mobile-drawer-expanded', isCollapsed);
+        updateMobileDrawerToggleUi();
+    }
+
     function setupInterfaceForm(tool) {
         const formContent = document.getElementById('interfaceFormContent');
         formContent.innerHTML = '';
@@ -898,13 +1157,18 @@
         if (tool.prompt_required) {
             const promptDiv = document.createElement('div');
             promptDiv.innerHTML = `
-                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 block">${sectionNumber}. Prompt</label>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${sectionNumber}. Prompt</label>
+                    <button type="button" onclick="openPromptModal('interface_prompt', 'Prompt')" class="flex items-center gap-1 text-slate-500 hover:text-primary transition-colors" title="Expand prompt editor">
+                        <span class="material-symbols-outlined text-base">open_in_full</span>
+                    </button>
+                </div>
                 <textarea
                     id="interface_prompt"
                     name="prompt"
                     rows="2"
                     required
-                    class="w-full bg-white/5 border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-none"
+                    class="w-full bg-white/5 border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-y"
                     placeholder="${escapeHtml(tool.prompt_placeholder || 'Enter your prompt...')}"
                 ></textarea>
                 ${tool.default_prompt ? `<p class="text-[10px] text-slate-500 mt-1">Default: ${escapeHtml(tool.default_prompt)}</p>` : ''}
@@ -944,8 +1208,17 @@
                                 class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                                 onchange="previewUploadedImage(this, 'preview_${upload.name}')"
                             >
-                            <div id="preview_${upload.name}" class="absolute inset-0 hidden">
-                                <img class="w-full h-full object-cover" alt="Preview">
+                            <div id="preview_${upload.name}" class="absolute inset-0 hidden z-20">
+                                <img class="w-full h-full object-cover cursor-zoom-in" alt="Preview"
+                                     onclick="event.stopPropagation(); openImageLightbox(this.src)">
+                                <button
+                                    type="button"
+                                    onclick="event.stopPropagation(); removeUploadedImage('${upload.name}')"
+                                    class="absolute top-1.5 right-1.5 z-30 size-6 rounded-md bg-black/70 hover:bg-red-500/80 text-white flex items-center justify-center transition-colors"
+                                    title="Remove image"
+                                >
+                                    <span class="material-symbols-outlined text-sm">close</span>
+                                </button>
                             </div>
                             <div class="relative z-0 flex flex-col items-center pointer-events-none">
                                 <span class="material-symbols-outlined text-primary text-lg mb-1">cloud_upload</span>
@@ -983,7 +1256,7 @@
                         <select
                             id="interface_feature_${feature.name}"
                             name="features[${feature.name}]"
-                            class="w-full bg-white/5 border-white/10 rounded-lg p-2 text-sm text-white focus:ring-primary focus:border-primary transition-all"
+                            class="w-full bg-slate-800/90 border border-white/10 rounded-lg p-2 text-sm text-white focus:ring-primary focus:border-primary transition-all"
                         >
                             ${(feature.options || []).map(opt => `
                                 <option value="${escapeHtml(opt)}" ${opt === feature.default ? 'selected' : ''}>
@@ -1042,10 +1315,19 @@
             reader.onload = function(e) {
                 preview.querySelector('img').src = e.target.result;
                 preview.classList.remove('hidden');
-                preview.previousElementSibling.classList.add('hidden');
             };
             reader.readAsDataURL(input.files[0]);
         }
+    }
+
+    function removeUploadedImage(uploadName) {
+        const input = document.getElementById(`interface_upload_${uploadName}`);
+        const preview = document.getElementById(`preview_${uploadName}`);
+        if (!input || !preview) return;
+        input.value = '';
+        const img = preview.querySelector('img');
+        if (img) img.src = '';
+        preview.classList.add('hidden');
     }
 
     function closeToolModal() {
@@ -1114,7 +1396,7 @@
                         <select
                             id="feature_${feature.name}"
                             name="features[${feature.name}]"
-                            class="w-full bg-white/5 border-white/10 rounded-xl p-3 text-white focus:ring-primary focus:border-primary transition-all"
+                            class="w-full bg-slate-800/90 border border-white/10 rounded-xl p-3 text-white focus:ring-primary focus:border-primary transition-all"
                         >
                             ${(feature.options || []).map(opt => `
                                 <option value="${escapeHtml(opt)}" ${opt === feature.default ? 'selected' : ''}>
@@ -1167,6 +1449,7 @@
         const previewContent = document.getElementById('previewContent');
 
         btn.disabled = true;
+        setMobileGeneratingDrawerState(true);
         statusEl.className = 'p-3 rounded-lg bg-primary/10 border border-primary/20 text-primary text-xs';
         statusEl.classList.remove('hidden');
         statusEl.innerHTML = `
@@ -1228,17 +1511,12 @@
                 displayInPreview(data);
             }
         } catch (error) {
-            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-            statusEl.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">error</span>
-                    <span>Error: ${error.message}</span>
-                </div>
-            `;
+            statusEl.classList.add('hidden');
 
             // Reset preview on error
             resetPreview();
         } finally {
+            setMobileGeneratingDrawerState(false);
             btn.disabled = false;
         }
     });
@@ -1285,11 +1563,11 @@
             }).catch(() => {
                 // Fallback: copy to clipboard
                 navigator.clipboard.writeText(window.currentImageUrl);
-                alert('Image URL copied to clipboard!');
+                if (window.appToast) window.appToast('Image URL copied to clipboard.', 'success');
             });
         } else if (window.currentImageUrl) {
             navigator.clipboard.writeText(window.currentImageUrl);
-            alert('Image URL copied to clipboard!');
+            if (window.appToast) window.appToast('Image URL copied to clipboard.', 'success');
         }
     }
 
@@ -1352,13 +1630,7 @@
                 closeToolModal();
             }
         } catch (error) {
-            statusEl.className = 'p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400';
-            statusEl.innerHTML = `
-                <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined">error</span>
-                    <span>Error: ${error.message}</span>
-                </div>
-            `;
+            statusEl.classList.add('hidden');
         } finally {
             btn.disabled = false;
         }
@@ -1412,14 +1684,67 @@
     }
 
     // Search functionality
-    document.getElementById('toolSearch').addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const filtered = availableTools.filter(tool =>
-            tool.name.toLowerCase().includes(searchTerm) ||
-            (tool.description && tool.description.toLowerCase().includes(searchTerm))
-        );
-        renderTools(filtered);
-    });
+    (function initToolSearchToolbar() {
+        const searchShell = document.getElementById('toolSearchShell');
+        const searchToggle = document.getElementById('toolSearchToggle');
+        const searchInput = document.getElementById('toolSearch');
+        const searchClear = document.getElementById('toolSearchClear');
+
+        function isDesktop() {
+            return window.matchMedia('(min-width: 640px)').matches;
+        }
+
+        function setSearchOpen(isOpen, shouldFocus) {
+            if (!searchShell) return;
+            searchShell.classList.toggle('is-open', isOpen);
+            if (isOpen && shouldFocus && searchInput) searchInput.focus();
+        }
+
+        function applyToolSearch(term) {
+            const q = term.toLowerCase();
+            const filtered = availableTools.filter(tool =>
+                tool.name.toLowerCase().includes(q) ||
+                (tool.description && tool.description.toLowerCase().includes(q))
+            );
+            renderTools(filtered);
+            searchClear.classList.toggle('hidden', q.trim() === '');
+        }
+
+        if (!isDesktop()) setSearchOpen(false, false);
+
+        searchToggle.addEventListener('click', () => {
+            const isOpen = searchShell.classList.contains('is-open');
+            setSearchOpen(!isOpen, !isOpen);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (isDesktop()) return;
+            if (!searchShell.classList.contains('is-open')) return;
+            if (searchInput.value.trim() !== '') return;
+            if (searchShell.contains(e.target) || searchToggle.contains(e.target)) return;
+            setSearchOpen(false, false);
+        });
+
+        window.addEventListener('resize', () => {
+            if (isDesktop()) {
+                setSearchOpen(true, false);
+            } else if (searchInput.value.trim() === '') {
+                setSearchOpen(false, false);
+            }
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value;
+            if (searchTerm.trim() !== '') setSearchOpen(true, false);
+            applyToolSearch(searchTerm);
+        });
+
+        searchClear.addEventListener('click', () => {
+            searchInput.value = '';
+            applyToolSearch('');
+            searchInput.focus();
+        });
+    })();
 
     function escapeHtml(text) {
         if (!text) return '';
@@ -1437,6 +1762,9 @@
 
     // Initialize
     loadTools();
+    window.addEventListener('resize', () => {
+        if (!isMobileTabletViewport()) setMobileGeneratingDrawerState(false);
+    });
 
     // ─── Dev / Test Helper ───────────────────────────────────────────────────
     function testRegenerateUI() {
@@ -1559,9 +1887,7 @@
         const statusEl = document.getElementById('regenStatus');
 
         if (!imageId) {
-            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-            statusEl.classList.remove('hidden');
-            statusEl.innerHTML = '<div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">error</span><span>Image ID not available. Try regenerating after a fresh generation.</span></div>';
+            if (window.appToast) window.appToast('Image ID not available. Try regenerating after a fresh generation.', 'error');
             return;
         }
 
@@ -1655,13 +1981,7 @@
 
         } catch (error) {
             clearRegenSkeletons();
-            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-            statusEl.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">error</span>
-                    <span>Error: ${escapeHtml(error.message)}</span>
-                </div>
-            `;
+            statusEl.classList.add('hidden');
         } finally {
             btn.disabled = false;
             btn.innerHTML = REGEN_BTN_DEFAULT_HTML;
@@ -1771,12 +2091,56 @@
         if (navigator.share) {
             navigator.share({ title: 'Regenerated Image', url }).catch(() => {
                 navigator.clipboard.writeText(url);
-                alert('Image URL copied to clipboard!');
+                if (window.appToast) window.appToast('Image URL copied to clipboard.', 'success');
             });
         } else {
             navigator.clipboard.writeText(url);
-            alert('Image URL copied to clipboard!');
+            if (window.appToast) window.appToast('Image URL copied to clipboard.', 'success');
         }
     }
+
+    // ─── Image Lightbox ──────────────────────────────────────────────────────
+    function openImageLightbox(src) {
+        if (!src) return;
+        document.getElementById('lightboxImage').src = src;
+        document.getElementById('imageLightbox').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeImageLightbox() {
+        document.getElementById('imageLightbox').classList.add('hidden');
+        document.getElementById('lightboxImage').src = '';
+        document.body.style.overflow = '';
+    }
+
+    // ─── Prompt Expand Modal ─────────────────────────────────────────────────
+    function openPromptModal(sourceId, title) {
+        const source = document.getElementById(sourceId);
+        document.getElementById('promptModalTextarea').value = source ? source.value : '';
+        document.getElementById('promptModalTitle').textContent = title || 'Prompt';
+        document.getElementById('promptExpandModal').dataset.sourceId = sourceId;
+        document.getElementById('promptExpandModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => document.getElementById('promptModalTextarea').focus(), 50);
+    }
+
+    function applyPromptModal() {
+        const modal = document.getElementById('promptExpandModal');
+        const source = document.getElementById(modal.dataset.sourceId);
+        if (source) source.value = document.getElementById('promptModalTextarea').value;
+        closePromptModal();
+    }
+
+    function closePromptModal() {
+        document.getElementById('promptExpandModal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            if (!document.getElementById('imageLightbox').classList.contains('hidden')) closeImageLightbox();
+            else if (!document.getElementById('promptExpandModal').classList.contains('hidden')) closePromptModal();
+        }
+    });
 </script>
 @endpush

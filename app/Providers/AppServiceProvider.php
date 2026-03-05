@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\SiteSettingsService;
 use App\Services\UserDataService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
@@ -26,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
         if (config('app.env') !== 'local') {
             URL::forceScheme('https');
         }
+
+        // Share site settings with all views (fetched once, cached 30 min)
+        View::share('siteSettings', (new SiteSettingsService())->getSettings());
 
         // Share user data with sidebar and topbar
         View::composer(['layouts.sidebar', 'layouts.topbar'], function ($view) {

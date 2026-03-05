@@ -9,6 +9,24 @@ use Illuminate\Support\Facades\Log;
 
 class CommunityGalleryController extends Controller
 {
+    private function providerError(\Throwable $e, string $fallback)
+    {
+        if ($e instanceof \GuzzleHttp\Exception\ClientException && $e->hasResponse()) {
+            $status = $e->getResponse()->getStatusCode();
+            $body   = (string) $e->getResponse()->getBody();
+            $json   = json_decode($body, true);
+
+            if (is_array($json)) {
+                return response()->json($json, $status);
+            }
+        }
+
+        return response()->json([
+            'success' => false,
+            'error'   => $fallback,
+        ], 500);
+    }
+
     /**
      * Display the Community Gallery page.
      */
@@ -76,11 +94,7 @@ class CommunityGalleryController extends Controller
             Log::error('Community Gallery API proxy error', [
                 'message' => $e->getMessage(),
             ]);
-
-            return response()->json([
-                'success' => false,
-                'error'   => 'Failed to contact community gallery API: ' . $e->getMessage(),
-            ], 500);
+            return $this->providerError($e, 'Community gallery is temporarily unavailable. Please try again.');
         }
     }
 }

@@ -4,49 +4,72 @@
 
 @section('content')
 <!-- Hero Section -->
-<section class="relative rounded-3xl overflow-hidden p-12">
+<section class="relative rounded-2xl sm:rounded-3xl overflow-hidden p-6 sm:p-8 lg:p-10 xl:p-12">
 <div class="absolute inset-0 bg-gradient-to-r from-primary/20 via-secondary/10 to-transparent z-0"></div>
 <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 z-0"></div>
 <div class="relative z-10 max-w-2xl">
-<h2 class="text-5xl font-black tracking-tight text-white mb-4">Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{{ auth()->user()->name ?? 'User' }}!</span></h2>
-<p class="text-lg text-slate-400 font-medium">What will you imagine today? Your creative tools are ready and waiting.</p>
+<h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white mb-3 sm:mb-4 leading-tight">Welcome back, <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">{{ auth()->user()->name ?? 'User' }}!</span></h2>
+<p class="text-sm sm:text-base lg:text-lg text-slate-400 font-medium">What will you imagine today? Your creative tools are ready and waiting.</p>
 </div>
 </section>
 
-<!-- Stats Grid -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-<div class="glass p-6 rounded-2xl flex items-center justify-between border-l-4 border-l-primary hover:translate-y-[-4px] transition-transform">
-<div>
-<p class="text-sm text-slate-400 font-medium mb-1">Images Generated</p>
-<p class="text-3xl font-black text-white">342</p>
-</div>
-<div class="p-3 bg-primary/10 rounded-xl text-primary">
-<span class="material-symbols-outlined text-3xl">image</span>
-</div>
-</div>
-<div class="glass p-6 rounded-2xl flex items-center justify-between border-l-4 border-l-secondary hover:translate-y-[-4px] transition-transform">
-<div>
-<p class="text-sm text-slate-400 font-medium mb-1">Available Tokens</p>
-<p class="text-3xl font-black text-white">178</p>
-</div>
-<div class="p-3 bg-secondary/10 rounded-xl text-secondary">
-<span class="material-symbols-outlined text-3xl">toll</span>
-</div>
-</div>
-<div class="glass p-6 rounded-2xl flex items-center justify-between border-l-4 border-l-emerald-500 hover:translate-y-[-4px] transition-transform">
-<div>
-<p class="text-sm text-slate-400 font-medium mb-1">Total Likes</p>
-<p class="text-3xl font-black text-white">1.2k</p>
-</div>
-<div class="p-3 bg-emerald-500/10 rounded-xl text-emerald-500">
-<span class="material-symbols-outlined text-3xl">favorite</span>
-</div>
-</div>
-</div>
+<!-- Live API Stats (below welcome card) -->
+<section class="glass rounded-2xl p-4 sm:p-5 border border-white/10">
+    <div class="flex items-center justify-between gap-3 mb-4">
+        <p class="text-sm font-bold text-white">Live Account Snapshot</p>
+        <span id="dashboardLiveStatsStatus" class="text-[10px] text-slate-500">Loading...</span>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="group rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/25 p-3 sm:p-4 hover:translate-y-[-2px] transition-all">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-300 font-semibold">Total Images</p>
+                    <p id="dashboard-live-total-images" class="text-xl sm:text-2xl font-black text-white mt-1">--</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-primary/20 text-primary border border-primary/30">
+                    <span class="material-symbols-outlined text-lg">image</span>
+                </div>
+            </div>
+        </div>
+        <div class="group rounded-2xl bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent border border-amber-400/25 p-3 sm:p-4 hover:translate-y-[-2px] transition-all">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-300 font-semibold">Credits Used</p>
+                    <p id="dashboard-live-credits-used" class="text-xl sm:text-2xl font-black text-white mt-1">--</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-300/30">
+                    <span class="material-symbols-outlined text-lg">local_fire_department</span>
+                </div>
+            </div>
+        </div>
+        <div class="group rounded-2xl bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-400/25 p-3 sm:p-4 hover:translate-y-[-2px] transition-all">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-300 font-semibold">Credits Left</p>
+                    <p id="dashboard-live-credits-left" class="text-xl sm:text-2xl font-black text-white mt-1">--</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-300/30">
+                    <span class="material-symbols-outlined text-lg">payments</span>
+                </div>
+            </div>
+        </div>
+        <div class="group rounded-2xl bg-gradient-to-br from-secondary/25 via-secondary/10 to-transparent border border-secondary/25 p-3 sm:p-4 hover:translate-y-[-2px] transition-all">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-[11px] uppercase tracking-wide text-slate-300 font-semibold">Tokens Left</p>
+                    <p id="dashboard-live-tokens-left" class="text-xl sm:text-2xl font-black text-white mt-1">--</p>
+                </div>
+                <div class="p-2.5 rounded-xl bg-secondary/20 text-secondary border border-secondary/30">
+                    <span class="material-symbols-outlined text-lg">toll</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- Quick Start Prompt -->
-<section class="glass p-8 rounded-3xl border border-primary/20 bg-gradient-to-b from-white/[0.02] to-transparent">
-    <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+<section class="glass p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-primary/20 bg-gradient-to-b from-white/[0.02] to-transparent">
+    <h3 class="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6 flex items-center gap-2">
         <span class="material-symbols-outlined text-primary">rocket_launch</span>
         Quick Start
         <span class="ml-auto text-[10px] px-2 py-1 bg-primary/10 text-primary rounded-full font-bold uppercase tracking-widest border border-primary/20">Nano Banana AI</span>
@@ -54,7 +77,7 @@
     <div class="relative">
         <textarea
             id="quickPrompt"
-            class="w-full bg-background-dark/50 border border-white/10 rounded-2xl p-6 pr-36 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none"
+            class="w-full bg-background-dark/50 border border-white/10 rounded-2xl p-4 sm:p-5 lg:p-6 pr-4 sm:pr-32 lg:pr-36 text-sm sm:text-base text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all resize-none"
             placeholder="Describe the image you want to create... (e.g., 'Cyberpunk city street at night in 8k resolution, cinematic lighting, neon blue and pink')"
             rows="3"
             onkeydown="if(event.ctrlKey && event.key==='Enter') quickGenerate()"
@@ -62,7 +85,8 @@
         <button
             id="quickGenerateBtn"
             onclick="quickGenerate()"
-            class="absolute bottom-4 right-4 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+            data-tooltip="Ctrl+Enter to generate" data-tooltip-pos="top"
+            class="static sm:absolute mt-3 sm:mt-0 sm:bottom-4 sm:right-4 bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl text-sm sm:text-base font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20"
         >
             <span id="quickBtnText">Generate</span>
             <span id="quickBtnIcon" class="material-symbols-outlined text-lg">auto_fix</span>
@@ -74,7 +98,7 @@
         <button onclick="setPreset('Oil painting of a serene mountain landscape with lake, impressionist style, vibrant colors')" class="text-[10px] px-3 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Oil Painting</button>
         <button onclick="setPreset('Cyberpunk city street at night in 8k resolution, cinematic lighting, neon blue and pink, rain reflections')" class="text-[10px] px-3 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">Cyberpunk</button>
         <button onclick="setPreset('3D render of a futuristic spaceship in deep space, volumetric lighting, ultra realistic, 4k')" class="text-[10px] px-3 py-1 bg-white/5 hover:bg-primary/10 hover:text-primary hover:border-primary/30 rounded-full text-slate-400 border border-white/5 transition-colors uppercase font-bold tracking-wide">3D Render</button>
-        <span class="ml-auto text-[10px] text-slate-600">Ctrl+Enter to generate</span>
+        <span class="text-[10px] sm:ml-auto text-slate-600">Ctrl+Enter to generate</span>
     </div>
 </section>
 
@@ -105,14 +129,14 @@
 
         <!-- Result State -->
         <div id="quickResultContent" class="hidden">
-            <div class="flex flex-col lg:flex-row min-h-[420px]">
+            <div class="flex flex-col lg:flex-row min-h-[360px] lg:min-h-[420px]">
                 <!-- Image Panel -->
                 <div class="lg:w-[55%] relative overflow-hidden bg-black group/img cursor-zoom-in" onclick="openLightbox()">
                     <img
                         id="quickResultImg"
                         src=""
                         alt=""
-                        class="w-full h-full object-cover min-h-80 lg:min-h-[420px] transition-all duration-500 group-hover/img:scale-105"
+                        class="w-full h-full object-cover min-h-64 sm:min-h-72 lg:min-h-[420px] transition-all duration-500 group-hover/img:scale-105"
                         style="opacity:0"
                         onload="this.style.opacity='1'"
                     >
@@ -132,14 +156,14 @@
                 </div>
 
                 <!-- Info Panel -->
-                <div class="lg:w-[45%] p-8 flex flex-col justify-between gap-6 bg-gradient-to-br from-surface-dark to-background-dark">
+                <div class="lg:w-[45%] p-5 sm:p-6 lg:p-8 flex flex-col justify-between gap-5 sm:gap-6 bg-gradient-to-br from-surface-dark to-background-dark">
                     <div class="space-y-4">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-[10px] px-2.5 py-1 bg-primary/15 text-primary rounded-full font-bold uppercase tracking-widest border border-primary/20">Nano Banana AI</span>
                             <span class="text-[10px] text-slate-600">gemini-2.5-flash-image</span>
                         </div>
                         <div>
-                            <h4 class="text-white font-black text-xl mb-1">Generation Complete</h4>
+                            <h4 class="text-white font-black text-lg sm:text-xl mb-1">Generation Complete</h4>
                             <p class="text-slate-500 text-xs mb-3">Your image has been saved to gallery</p>
                         </div>
                         <div class="bg-white/[0.03] border border-white/5 rounded-xl p-4">
@@ -153,17 +177,18 @@
                             id="quickDownloadBtn"
                             href="#"
                             target="_blank"
+                            data-tooltip="Save image to device" data-tooltip-pos="top"
                             class="flex items-center justify-center gap-2 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
                         >
                             <span class="material-symbols-outlined text-lg">download</span>
                             Download Image
                         </a>
                         <div class="grid grid-cols-2 gap-3">
-                            <a href="{{ route('gallery') }}" class="flex items-center justify-center gap-1.5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 text-sm font-bold rounded-xl transition-all border border-white/10">
+                        <a href="{{ route('gallery') }}" data-tooltip="View all your images" data-tooltip-pos="top" class="flex items-center justify-center gap-1.5 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 text-xs sm:text-sm font-bold rounded-xl transition-all border border-white/10">
                                 <span class="material-symbols-outlined text-base">photo_library</span>
                                 Gallery
                             </a>
-                            <button onclick="resetQuickStart()" class="flex items-center justify-center gap-1.5 py-2.5 bg-secondary/10 hover:bg-secondary/20 text-secondary text-sm font-bold rounded-xl transition-all border border-secondary/20">
+                        <button onclick="resetQuickStart()" data-tooltip="Start a fresh generation" data-tooltip-pos="top" class="flex items-center justify-center gap-1.5 py-2.5 bg-secondary/10 hover:bg-secondary/20 text-secondary text-xs sm:text-sm font-bold rounded-xl transition-all border border-secondary/20">
                                 <span class="material-symbols-outlined text-base">add_circle</span>
                                 New Image
                             </button>
@@ -174,13 +199,13 @@
         </div>
 
         <!-- Error State -->
-        <div id="quickErrorState" class="hidden p-16 flex flex-col items-center gap-6">
+        <div id="quickErrorState" class="hidden p-8 sm:p-12 lg:p-16 flex flex-col items-center gap-6">
             <div class="w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center">
                 <span class="material-symbols-outlined text-red-400 text-4xl">error_outline</span>
             </div>
             <div class="text-center space-y-2">
                 <p class="text-white font-black text-xl">Generation Failed</p>
-                <p id="quickErrorMsg" class="text-slate-500 text-sm max-w-sm"></p>
+                <p class="text-slate-500 text-sm max-w-sm">Please try again in a moment.</p>
             </div>
             <button onclick="resetQuickStart()" class="flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/15 text-white font-bold rounded-xl transition-all border border-white/10">
                 <span class="material-symbols-outlined text-base">refresh</span>
@@ -192,9 +217,9 @@
 
 <!-- Recent Generations -->
 <section>
-<div class="flex justify-between items-end mb-8">
+<div class="flex flex-wrap justify-between items-end gap-3 mb-6 sm:mb-8">
 <div>
-<h3 class="text-2xl font-black text-white">Recent Generations</h3>
+<h3 class="text-xl sm:text-2xl font-black text-white">Recent Generations</h3>
 <p class="text-slate-400 text-sm">Your latest creative outputs</p>
 </div>
 <a href="{{ route('gallery') }}" class="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
@@ -246,6 +271,7 @@
                 id="lightboxDownload"
                 href="#"
                 target="_blank"
+                data-tooltip="Download this image" data-tooltip-pos="top"
                 class="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
             >
                 <span class="material-symbols-outlined text-base">download</span>
@@ -264,6 +290,7 @@
     <!-- Close button (top-right) -->
     <button
         onclick="closeLightbox()"
+        data-tooltip="Close (Esc)" data-tooltip-pos="left"
         class="absolute top-5 right-5 z-20 w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-all border border-white/10"
     >
         <span class="material-symbols-outlined">close</span>
@@ -339,8 +366,12 @@ async function quickGenerate() {
 
     } catch (err) {
         loadingState.classList.add('hidden');
-        document.getElementById('quickErrorMsg').textContent = err.message;
-        errorState.classList.remove('hidden');
+        errorState.classList.add('hidden');
+        if (window.showApiErrorToast) {
+            window.showApiErrorToast({ message: err && err.message ? err.message : 'Image generation failed.' });
+        } else if (window.appToast) {
+            window.appToast(err && err.message ? err.message : 'Image generation failed.', 'error');
+        }
     } finally {
         btn.disabled = false;
         btnText.textContent = 'Generate';
@@ -386,6 +417,52 @@ function resetQuickStart() {
     document.getElementById('quickPrompt').focus();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// ── Live stats under welcome card ──────────────────────────────
+(function loadDashboardLiveStats() {
+    const statusEl      = document.getElementById('dashboardLiveStatsStatus');
+    const totalImagesEl = document.getElementById('dashboard-live-total-images');
+    const creditsUsedEl = document.getElementById('dashboard-live-credits-used');
+    const creditsLeftEl = document.getElementById('dashboard-live-credits-left');
+    const tokensLeftEl  = document.getElementById('dashboard-live-tokens-left');
+
+    const setText = (el, value) => {
+        if (!el) return;
+        el.textContent = Number.isFinite(Number(value)) ? Number(value).toLocaleString() : '--';
+    };
+
+    Promise.allSettled([
+        fetch('/api/stats', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        }).then(r => r.ok ? r.json() : null),
+        fetch('/api/user/balance', {
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+        }).then(r => r.ok ? r.json() : null),
+    ])
+    .then(([statsRes, balanceRes]) => {
+        const statsJson   = statsRes.status === 'fulfilled' ? statsRes.value : null;
+        const balanceJson = balanceRes.status === 'fulfilled' ? balanceRes.value : null;
+
+        const s = statsJson?.data ?? statsJson ?? {};
+        const b = balanceJson?.data ?? {};
+
+        setText(totalImagesEl, s.total_images ?? s.images_total ?? s.images_count);
+        setText(creditsUsedEl, s.credits_used);
+        setText(creditsLeftEl, b.credits_left ?? s.credits_left ?? s.credits_remaining);
+        setText(tokensLeftEl, b.tokens_left);
+
+        if (statusEl) statusEl.textContent = 'Updated';
+    })
+    .catch(() => {
+        if (statusEl) statusEl.textContent = 'Unavailable';
+    });
+})();
 
 // ── Recent Generations ────────────────────────────────────────
 (function loadRecentGenerations() {
