@@ -84,12 +84,6 @@
         <p class="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Account</p>
     </div>
 
-    <a href="{{ route('stats') }}"
-       data-tooltip="Image Stats" data-tooltip-pos="right"
-       class="{{ request()->routeIs('stats') ? 'sidebar-active' : '' }} flex items-center gap-3 px-4 py-3 rounded-lg {{ request()->routeIs('stats') ? 'text-primary' : 'text-slate-400 hover:text-white hover:bg-white/5' }} transition-colors cursor-pointer">
-        <span class="material-symbols-outlined flex-shrink-0">bar_chart</span>
-        <span class="sidebar-label text-sm font-medium whitespace-nowrap">Stats</span>
-    </a>
     <a href="https://clevercreator.ai/contact-us" target="_blank" data-tooltip="Help Center" data-tooltip-pos="right" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer">
         <span class="material-symbols-outlined flex-shrink-0">help</span>
         <span class="sidebar-label text-sm font-medium whitespace-nowrap">Help Center</span>
@@ -131,6 +125,17 @@
             <span class="material-symbols-outlined text-sm">add_circle</span>
             Refill Credits
         </a>
+        @if(!empty($gitMeta['short_hash']))
+            <a
+                href="{{ $gitMeta['commit_url'] ?: '#' }}"
+                @if(!empty($gitMeta['commit_url'])) target="_blank" rel="noopener noreferrer" @else onclick="if (navigator.clipboard) { navigator.clipboard.writeText('{{ $gitMeta['full_hash'] }}'); } return false;" @endif
+                class="sidebar-label mt-2 block text-center text-[10px] text-slate-500 hover:text-primary transition-colors"
+                data-tooltip="{{ !empty($gitMeta['commit_url']) ? 'Open commit details' : 'Copy full commit ID' }}"
+                data-tooltip-pos="top"
+            >
+                Commit {{ $gitMeta['short_hash'] }}
+            </a>
+        @endif
     </div>
 </div>
 

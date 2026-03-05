@@ -465,6 +465,30 @@
         #toolInterfaceView.mobile-generating #mobileDrawerToggle {
             display: inline-flex !important;
         }
+
+        /* Preserve regenerated results layout on mobile/tablet even when drawer mode is active */
+        #toolInterfaceView.mobile-generating #previewRightSection.regen-active {
+            align-items: stretch !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+        #toolInterfaceView.mobile-generating #previewRightSection.regen-active #previewContent {
+            min-height: unset !important;
+            height: auto !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            padding: 0.75rem 1rem !important;
+            gap: 0.75rem;
+        }
+        #toolInterfaceView.mobile-generating #previewRightSection.regen-active #regeneratedSection {
+            display: flex !important;
+            flex: 1 1 auto !important;
+            min-height: 0;
+            overflow: hidden !important;
+            padding: 0.75rem 1rem !important;
+        }
     }
 </style>
 @endpush
@@ -603,9 +627,8 @@
                         <span class="material-symbols-outlined text-xl">share</span>
                     </button>
                     <div class="w-px h-5 bg-white/10 mx-1 self-center"></div>
-                    <button class="p-2 hover:bg-primary/10 rounded-md text-slate-400 hover:text-primary transition-colors flex items-center gap-1.5 pr-3" onclick="openRegenerateCanvas()" title="Regenerate Variations" id="regenerateBtn">
-                        <span class="material-symbols-outlined text-xl">auto_fix_high</span>
-                        <span class="text-xs font-semibold">Regenerate</span>
+                    <button class="p-2 hover:bg-primary/10 rounded-md text-slate-400 hover:text-primary transition-colors flex items-center justify-center" onclick="openRegenerateCanvas()" title="Regenerate Variations" id="regenerateBtn">
+                        <span class="material-symbols-outlined text-xl">autorenew</span>
                     </button>
                 </div>
             </div>
@@ -1126,8 +1149,16 @@
         const view = document.getElementById('toolInterfaceView');
         if (!view) return;
 
-        if (!isGenerating || !isMobileTabletViewport()) {
+        if (!isMobileTabletViewport()) {
             view.classList.remove('mobile-generating', 'mobile-drawer-collapsed', 'mobile-drawer-expanded');
+            updateMobileDrawerToggleUi();
+            return;
+        }
+
+        if (!isGenerating) {
+            // Keep drawer closed after generation; user can expand manually.
+            view.classList.add('mobile-generating', 'mobile-drawer-collapsed');
+            view.classList.remove('mobile-drawer-expanded');
             updateMobileDrawerToggleUi();
             return;
         }
@@ -1144,6 +1175,14 @@
         const isCollapsed = view.classList.contains('mobile-drawer-collapsed');
         view.classList.toggle('mobile-drawer-collapsed', !isCollapsed);
         view.classList.toggle('mobile-drawer-expanded', isCollapsed);
+        updateMobileDrawerToggleUi();
+    }
+
+    function collapseMobileFormDrawer() {
+        const view = document.getElementById('toolInterfaceView');
+        if (!view || !view.classList.contains('mobile-generating')) return;
+        view.classList.add('mobile-drawer-collapsed');
+        view.classList.remove('mobile-drawer-expanded');
         updateMobileDrawerToggleUi();
     }
 
@@ -1529,10 +1568,15 @@
         previewContent.innerHTML = `
             <div class="relative w-full max-w-2xl px-4 pt-4">
                 <div class="relative w-full aspect-square rounded-2xl overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.4)] ring-1 ring-white/10">
-                    <img src="${escapeHtml(data.image_url)}" alt="Generated image" class="w-full h-full object-contain bg-black/20" id="currentPreviewImage">
+                    <img src="${escapeHtml(data.image_url)}" alt="Generated image" class="w-full h-full object-contain bg-black/20 cursor-zoom-in" id="currentPreviewImage">
                 </div>
             </div>
         `;
+
+        const currentPreviewImage = document.getElementById('currentPreviewImage');
+        if (currentPreviewImage) {
+            currentPreviewImage.addEventListener('click', () => openImageLightbox(data.image_url));
+        }
 
         previewControls.classList.remove('hidden');
 
@@ -1844,7 +1888,10 @@
         if (!window.currentImageUrl) return;
 
         // Populate source image
-        document.getElementById('regenSourceImage').src = window.currentImageUrl;
+        const sourceImage = document.getElementById('regenSourceImage');
+        sourceImage.src = window.currentImageUrl;
+        sourceImage.classList.add('cursor-zoom-in');
+        sourceImage.onclick = () => openImageLightbox(window.currentImageUrl);
 
         // Reset form
         document.getElementById('regenPrompt').value = '';
@@ -1977,6 +2024,7 @@
             // Replace skeletons with real images, then close
             displayRegeneratedImages(data);
             updateRegenLayoutStatus(`${n} variation${n > 1 ? 's' : ''} ready`);
+            collapseMobileFormDrawer();
             setTimeout(() => closeRegenerateCanvas(), 1000);
 
         } catch (error) {
@@ -2051,10 +2099,10 @@
         images.forEach((img, idx) => {
             const url = img.url || img.image_url || img;
             const card = document.createElement('div');
-            card.className = 'regen-card group';
+            card.className = 'regen-card group cursor-zoom-in';
             card.innerHTML = `
                 <div class="aspect-square overflow-hidden rounded-t-xl bg-black/20">
-                    <img src="${escapeHtml(url)}" alt="Variation ${idx + 1}" class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105">
+                    <img src="${escapeHtml(url)}" alt="Variation ${idx + 1}" class="regen-preview-img w-full h-full object-contain transition-transform duration-500 group-hover:scale-105 cursor-zoom-in" title="Open variation">
                 </div>
                 <div class="p-3 flex items-center justify-between gap-2">
                     <span class="text-[10px] text-slate-500 font-medium">Variation ${idx + 1}</span>
@@ -2068,6 +2116,18 @@
                     </div>
                 </div>
             `;
+            const imgEl = card.querySelector('.regen-preview-img');
+            if (imgEl) {
+                imgEl.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openImageLightbox(url);
+                });
+            }
+            card.addEventListener('click', (e) => {
+                const clickedButton = e.target.closest('button');
+                if (clickedButton) return;
+                openImageLightbox(url);
+            });
             fragment.appendChild(card);
         });
 

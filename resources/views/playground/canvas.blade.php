@@ -90,6 +90,7 @@
         border-radius: 1.25rem;
         box-shadow: 0 0 0 1px rgba(255,255,255,0.07), 0 32px 80px rgba(0,0,0,0.6);
         object-fit: contain;
+        cursor: zoom-in;
         animation: canvasFadeIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
     }
     @keyframes canvasFadeIn {
@@ -100,12 +101,13 @@
     /* Image action buttons that overlay the canvas image */
     #canvasImageActions {
         position: absolute;
-        bottom: calc(1rem + 16px);
+        bottom: 0.75rem;
         left: 50%;
         transform: translateX(-50%);
         display: flex;
         gap: 0.5rem;
         opacity: 0;
+        z-index: 2;
         transition: opacity 0.2s;
     }
     #canvasImageContainer:hover #canvasImageActions { opacity: 1; }
@@ -605,6 +607,18 @@
             bottom: 0.75rem !important;
         }
 
+        /* When chat is collapsed on mobile, reclaim canvas height and center image naturally */
+        body.mobile-canvas-chat-collapsed #canvasImageContainer {
+            inset: 0 0 4.5rem 0;
+            padding-bottom: 0.75rem;
+        }
+        body.mobile-canvas-chat-collapsed #canvasEmptyHint {
+            inset: 0 0 4.5rem 0;
+        }
+        body.mobile-canvas-chat-collapsed #canvasMainImage {
+            max-height: min(68vh, calc(100dvh - 11rem));
+        }
+
         /* ── Sessions modal: full screen with small margin ───── */
         .sess-modal-backdrop { padding: 0.75rem; }
         .sess-modal-inner { border-radius: 1rem; max-height: 88vh; }
@@ -728,15 +742,11 @@
                 {{-- Quick action chips — above the image, left-aligned --}}
                 <div id="canvasQuickActions"></div>
                 <div class="relative">
-                <img id="canvasMainImage" src="" alt="Generated">
+                <img id="canvasMainImage" src="" alt="Generated" onclick="openLightbox(this.src)">
                 <div id="canvasImageActions">
                     <button onclick="downloadCanvas()"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-medium transition-colors backdrop-blur-sm border border-white/10">
                         <span class="material-symbols-outlined text-sm">download</span>
-                    </button>
-                    <button onclick="useCanvasAsRef()"
-                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary/80 hover:bg-primary text-white text-xs font-medium transition-colors backdrop-blur-sm">
-                        <span class="material-symbols-outlined text-sm">recycling</span>
                     </button>
                     <button onclick="openLightbox(document.getElementById('canvasMainImage').src)"
                         class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-black/70 hover:bg-black/90 text-white text-xs font-medium transition-colors backdrop-blur-sm border border-white/10">
@@ -939,6 +949,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     newChat();
     setupDragDrop();
+    syncMobileCanvasLayoutState();
 });
 
 // ── Session management ────────────────────────────────────────────────────────
@@ -1286,6 +1297,7 @@ function toggleMinichat() {
     S.minichatOpen = !S.minichatOpen;
     panel.classList.toggle('collapsed', !S.minichatOpen);
     icon.textContent = S.minichatOpen ? 'expand_more' : 'expand_less';
+    syncMobileCanvasLayoutState();
 }
 
 // ── Sessions modal ────────────────────────────────────────────────────────────
@@ -1406,27 +1418,6 @@ function downloadCanvas() {
     a.click();
 }
 
-function useCanvasAsRef() {
-    const url = document.getElementById('canvasMainImage').src;
-    if (!url) return;
-    fetch(url)
-        .then(r => r.blob())
-        .then(blob => {
-            const ext = blob.type.includes('png') ? 'png' : 'jpg';
-            S.refFile = new File([blob], `ref.${ext}`, { type: blob.type });
-            document.getElementById('miniRefThumb').src = url;
-            document.getElementById('miniRefPreview').classList.remove('hidden');
-            // Open minichat if collapsed
-            if (!S.minichatOpen) toggleMinichat();
-            document.getElementById('miniPromptInput').focus();
-        })
-        .catch(() => {
-            // If cross-origin, fallback: just focus
-            if (!S.minichatOpen) toggleMinichat();
-            document.getElementById('miniPromptInput').focus();
-        });
-}
-
 // ── Reference image ───────────────────────────────────────────────────────────
 function handleRefImage(input) {
     const file = input.files[0];
@@ -1481,13 +1472,22 @@ function applyMobileGeneratingDrawer(isGenerating) {
     const icon = document.getElementById('minichatCollapseIcon');
     if (!panel || !icon) return;
 
-    if (!isGenerating || !isMobileTabletViewport()) {
+    if (!isMobileTabletViewport()) {
         document.body.classList.remove('mobile-canvas-generating');
-        if (isMobileTabletViewport()) {
-            S.minichatOpen = S.preGenMiniOpen;
-            panel.classList.toggle('collapsed', !S.minichatOpen);
-            icon.textContent = S.minichatOpen ? 'expand_more' : 'expand_less';
-        }
+        panel.classList.remove('collapsed');
+        S.minichatOpen = true;
+        icon.textContent = 'expand_more';
+        syncMobileCanvasLayoutState();
+        return;
+    }
+
+    if (!isGenerating) {
+        document.body.classList.remove('mobile-canvas-generating');
+        // Keep it closed after generation; user can reopen manually via header toggle.
+        S.minichatOpen = false;
+        panel.classList.add('collapsed');
+        icon.textContent = 'expand_less';
+        syncMobileCanvasLayoutState();
         return;
     }
 
@@ -1496,6 +1496,12 @@ function applyMobileGeneratingDrawer(isGenerating) {
     S.minichatOpen = false;
     panel.classList.add('collapsed');
     icon.textContent = 'expand_less';
+    syncMobileCanvasLayoutState();
+}
+
+function syncMobileCanvasLayoutState() {
+    const collapsed = isMobileTabletViewport() && !S.minichatOpen;
+    document.body.classList.toggle('mobile-canvas-chat-collapsed', collapsed);
 }
 
 function miniResize(el) {
@@ -1509,6 +1515,7 @@ function handleMiniKey(e) {
 
 window.addEventListener('resize', () => {
     if (!isMobileTabletViewport()) applyMobileGeneratingDrawer(false);
+    syncMobileCanvasLayoutState();
 });
 
 // ── Canvas example prompts ────────────────────────────────────────────────────
