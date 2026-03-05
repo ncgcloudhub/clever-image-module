@@ -1481,13 +1481,20 @@ function applyMobileGeneratingDrawer(isGenerating) {
     const icon = document.getElementById('minichatCollapseIcon');
     if (!panel || !icon) return;
 
-    if (!isGenerating || !isMobileTabletViewport()) {
+    if (!isMobileTabletViewport()) {
         document.body.classList.remove('mobile-canvas-generating');
-        if (isMobileTabletViewport()) {
-            S.minichatOpen = S.preGenMiniOpen;
-            panel.classList.toggle('collapsed', !S.minichatOpen);
-            icon.textContent = S.minichatOpen ? 'expand_more' : 'expand_less';
-        }
+        panel.classList.remove('collapsed');
+        S.minichatOpen = true;
+        icon.textContent = 'expand_more';
+        return;
+    }
+
+    if (!isGenerating) {
+        document.body.classList.remove('mobile-canvas-generating');
+        // Keep it closed after generation; user can reopen manually via header toggle.
+        S.minichatOpen = false;
+        panel.classList.add('collapsed');
+        icon.textContent = 'expand_less';
         return;
     }
 

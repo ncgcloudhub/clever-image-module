@@ -1370,8 +1370,16 @@ function setGeneratingDrawerState(isGenerating) {
     const wrap = document.getElementById('genWrap');
     if (!wrap) return;
 
-    if (!isGenerating || !isMobileTabletViewport()) {
+    if (!isMobileTabletViewport()) {
         wrap.classList.remove('gen-generating', 'drawer-collapsed', 'drawer-expanded');
+        updateGenDrawerToggleUi();
+        return;
+    }
+
+    if (!isGenerating) {
+        // Keep drawer closed after generation; user can expand manually.
+        wrap.classList.add('gen-generating', 'drawer-collapsed');
+        wrap.classList.remove('drawer-expanded');
         updateGenDrawerToggleUi();
         return;
     }
