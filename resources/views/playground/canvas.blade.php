@@ -4,6 +4,10 @@
 
 @push('styles')
 <style>
+    :root {
+        --mobile-mini-dock-height: 60px;
+    }
+
     /* ── Make this page fully viewport-fitted (no page scroll) ─── */
     #appMain {
         height: 100dvh;
@@ -536,10 +540,57 @@
         #studioWrap { height: 100%; }
     }
 
+    /* ── Mobile sticky mini dock ───────────────────────────── */
+    #mobileMiniDock {
+        display: none;
+        position: fixed;
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+        height: var(--mobile-mini-dock-height);
+        z-index: 70;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        background: rgba(248, 250, 252, 0.97);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(148,163,184,0.22);
+        border-radius: 1rem;
+        box-shadow: 0 10px 26px rgba(2, 6, 23, 0.22);
+        padding: 0.25rem;
+    }
+    .mobile-mini-link {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.14rem;
+        font-size: 0.62rem;
+        font-weight: 600;
+        color: #94a3b8;
+        text-decoration: none;
+        border-radius: 0.75rem;
+        line-height: 1.1;
+        transition: color 0.15s ease, background 0.15s ease;
+    }
+    .mobile-mini-link .mini-icon {
+        font-size: 1rem;
+        line-height: 1;
+    }
+    .mobile-mini-link:hover {
+        color: #0ea5e9;
+        background: rgba(56, 189, 248, 0.09);
+    }
+    .mobile-mini-link.active {
+        color: #13a4ec;
+        background: rgba(19,164,236,0.12);
+    }
+
     /* ════════════════════════════════════════════════════════
        MOBILE  ≤ 639 px
        ════════════════════════════════════════════════════════ */
     @media (max-width: 639px) {
+        #mobileMiniDock {
+            display: grid;
+        }
 
         /* ── Hide flow strip – reclaim 72 px of canvas width ── */
         #flowStrip { display: none !important; }
@@ -597,23 +648,23 @@
             width: calc(100vw - 1.5rem) !important;
             right: 0.75rem !important;
             left: auto !important;
-            bottom: 0.75rem !important;
+            bottom: calc(var(--mobile-mini-dock-height) + env(safe-area-inset-bottom, 0px) + 0.75rem) !important;
             height: 52vh;
             max-height: 52vh;
         }
         #minichatMessages { max-height: none; }
         #minichatFab {
             right: 0.75rem !important;
-            bottom: 0.75rem !important;
+            bottom: calc(var(--mobile-mini-dock-height) + env(safe-area-inset-bottom, 0px) + 0.75rem) !important;
         }
 
         /* When chat is collapsed on mobile, reclaim canvas height and center image naturally */
         body.mobile-canvas-chat-collapsed #canvasImageContainer {
-            inset: 0 0 4.5rem 0;
+            inset: 0 0 calc(var(--mobile-mini-dock-height) + env(safe-area-inset-bottom, 0px) + 0.75rem) 0;
             padding-bottom: 0.75rem;
         }
         body.mobile-canvas-chat-collapsed #canvasEmptyHint {
-            inset: 0 0 4.5rem 0;
+            inset: 0 0 calc(var(--mobile-mini-dock-height) + env(safe-area-inset-bottom, 0px) + 0.75rem) 0;
         }
         body.mobile-canvas-chat-collapsed #canvasMainImage {
             max-height: min(68vh, calc(100dvh - 11rem));
@@ -916,6 +967,25 @@
         </div>
     </div>
 </div>
+
+<nav id="mobileMiniDock" aria-label="Image tools mini menu">
+    <a href="{{ route('image-generator.index') }}" class="mobile-mini-link {{ request()->routeIs('image-generator.*') ? 'active' : '' }}">
+        <span class="material-symbols-outlined mini-icon">image</span>
+        <span>Generator</span>
+    </a>
+    <a href="{{ route('playground.canvas') }}" class="mobile-mini-link {{ request()->routeIs('playground.canvas') ? 'active' : '' }}">
+        <span class="material-symbols-outlined mini-icon">draw</span>
+        <span>Canvas</span>
+    </a>
+    <a href="{{ route('nano.visual.tools') }}" class="mobile-mini-link {{ request()->routeIs('nano.visual.tools') ? 'active' : '' }}">
+        <span class="material-symbols-outlined mini-icon">tune</span>
+        <span>Tools</span>
+    </a>
+    <a href="{{ route('gallery') }}" class="mobile-mini-link {{ request()->routeIs('gallery') ? 'active' : '' }}">
+        <span class="material-symbols-outlined mini-icon">photo_library</span>
+        <span>Gallery</span>
+    </a>
+</nav>
 
 @endsection
 
