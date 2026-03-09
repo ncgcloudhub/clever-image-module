@@ -38,6 +38,10 @@
         }
     </script>
 <style>
+        :root {
+            --mobile-mini-dock-height: 60px;
+        }
+
         .glass {
             background: rgba(22, 27, 34, 0.7);
             backdrop-filter: blur(12px);
@@ -200,6 +204,13 @@
             to { opacity: 1; transform: translateY(0); }
         }
         @media (max-width: 640px) {
+            #appSidebar {
+                padding-bottom: calc(var(--mobile-mini-dock-height, 60px) + env(safe-area-inset-bottom, 0px) + 0.75rem);
+            }
+            #appSidebar nav {
+                overflow-y: auto;
+                overflow-x: hidden;
+            }
             #appToastStack {
                 top: calc(4.5rem + env(safe-area-inset-top, 0px));
                 right: 0.75rem;
