@@ -7,6 +7,7 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class OAuthClientController extends Controller
 {
@@ -78,6 +79,9 @@ class OAuthClientController extends Controller
         ]);
 
         $providerUser = json_decode((string) $userResponse->getBody(), true);
+        $providerRole = $providerUser['role'] ?? null;
+
+        log::info('Provider role', ['providerRole' => $providerRole]);
 
         // Map to local user (store provider_id from AISITE).
         // If a user with this provider_id OR this email already exists, reuse it
@@ -112,8 +116,11 @@ class OAuthClientController extends Controller
 
         Auth::login($user, true);
 
-        // Optionally store token for later API calls
+        // Store auth data from AISITE for later API calls and UI checks.
         session(['aisite_access_token' => $accessToken]);
+        session(['aisite_user_role' => $providerRole]);
+
+        log::info('User logged in 121', ['user' => $user]);
 
         return redirect()->route('dashboard');
     }

@@ -37,11 +37,15 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['layouts.sidebar', 'layouts.topbar'], function ($view) {
             $userData = null;
             $accessToken = session('aisite_access_token');
-            $gitMeta = $this->getGitMeta();
+            $role = session('aisite_user_role');
+            $gitMeta = [];
 
             if ($accessToken) {
                 $userDataService = new UserDataService();
                 $userData = $userDataService->getUserDetails($accessToken);
+                if ($role === null && is_array($userData)) {
+                    $role = $userData['role'] ?? null;
+                }
 
                 // Log for debugging
                 Log::info('User data fetched for view', [
@@ -51,9 +55,30 @@ class AppServiceProvider extends ServiceProvider
                 ]);
             }
 
+            if ($this->isAdminRole($role)) {
+                $gitMeta = $this->getGitMeta();
+            }
+
             $view->with('userData', $userData);
             $view->with('gitMeta', $gitMeta);
         });
+    }
+
+    private function isAdminRole(mixed $role): bool
+    {
+        if (is_string($role)) {
+            return strtolower(trim($role)) === 'admin';
+        }
+
+        if (is_array($role)) {
+            foreach ($role as $value) {
+                if (is_string($value) && strtolower(trim($value)) === 'admin') {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private function getGitMeta(): array
@@ -77,7 +102,16 @@ class AppServiceProvider extends ServiceProvider
 
     private function resolveCurrentGitHash(): ?string
     {
-        $gitDir = base_path('.git');
+        $envHash = $this->resolveHashFromEnvironment();
+        if ($envHash !== null) {
+            return $envHash;
+        }
+
+        $gitDir = $this->resolveGitDirectory();
+        if ($gitDir === null) {
+            return null;
+        }
+
         $headFile = $gitDir . DIRECTORY_SEPARATOR . 'HEAD';
 
         if (!is_file($headFile)) {
@@ -102,7 +136,7 @@ class AppServiceProvider extends ServiceProvider
             $hash = $headContent;
         }
 
-        return preg_match('/^[0-9a-f]{40}$/i', $hash ?? '') ? strtolower($hash) : null;
+        return $this->normalizeHash($hash);
     }
 
     private function resolvePackedRefHash(string $ref, string $gitDir): ?string
@@ -137,7 +171,12 @@ class AppServiceProvider extends ServiceProvider
 
     private function buildCommitUrl(string $fullHash): ?string
     {
-        $configFile = base_path('.git' . DIRECTORY_SEPARATOR . 'config');
+        $gitDir = $this->resolveGitDirectory();
+        if ($gitDir === null) {
+            return null;
+        }
+
+        $configFile = $gitDir . DIRECTORY_SEPARATOR . 'config';
         if (!is_file($configFile)) {
             return null;
         }
@@ -190,5 +229,64 @@ class AppServiceProvider extends ServiceProvider
         }
 
         return rtrim($remoteUrl, '/');
+    }
+
+    private function resolveGitDirectory(): ?string
+    {
+        $gitPath = base_path('.git');
+
+        if (is_dir($gitPath)) {
+            return $gitPath;
+        }
+
+        // Support deployments/worktrees where .git is a file: "gitdir: /actual/path"
+        if (is_file($gitPath)) {
+            $content = trim((string) file_get_contents($gitPath));
+            if (preg_match('/^gitdir:\s*(.+)$/i', $content, $matches)) {
+                $gitDir = trim($matches[1]);
+                if ($gitDir !== '' && is_dir($gitDir)) {
+                    return $gitDir;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function resolveHashFromEnvironment(): ?string
+    {
+        $keys = [
+            'APP_COMMIT_HASH',
+            'GIT_COMMIT_HASH',
+            'GIT_COMMIT',
+            'COMMIT_SHA',
+            'CI_COMMIT_SHA',
+            'RENDER_GIT_COMMIT',
+            'VERCEL_GIT_COMMIT_SHA',
+        ];
+
+        foreach ($keys as $key) {
+            $val = env($key);
+            $hash = $this->normalizeHash($val);
+            if ($hash !== null) {
+                return $hash;
+            }
+        }
+
+        return null;
+    }
+
+    private function normalizeHash(mixed $value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $hash = strtolower(trim($value));
+        if (preg_match('/^[0-9a-f]{40}$/', $hash)) {
+            return $hash;
+        }
+
+        return null;
     }
 }

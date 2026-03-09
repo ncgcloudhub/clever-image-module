@@ -51,6 +51,7 @@ Route::middleware('auth')->get('/dashboard', function () {
 Route::post('/logout', function () {
     Auth::guard('web')->logout();
     session()->forget('aisite_access_token');
+    session()->forget('aisite_user_role');
     session()->invalidate();
     session()->regenerateToken();
 
