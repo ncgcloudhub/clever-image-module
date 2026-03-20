@@ -112,8 +112,12 @@ class OAuthClientController extends Controller
 
         Auth::login($user, true);
 
-        // Optionally store token for later API calls
-        session(['aisite_access_token' => $accessToken]);
+        $expiresIn = $tokenData['expires_in'] ?? 86400;
+        session([
+            'aisite_access_token'    => $accessToken,
+            'aisite_token_issued_at' => now()->timestamp,
+            'aisite_token_expires_in' => $expiresIn,
+        ]);
 
         return redirect()->route('dashboard');
     }
