@@ -355,6 +355,12 @@
                     parsedPayload = null;
                 }
 
+                if (response.status === 401) {
+                    window.appToast('Your session expired. Redirecting to login...', 'error', 3000);
+                    setTimeout(() => { window.location.href = '{{ route("login") }}'; }, 1500);
+                    return response;
+                }
+
                 if (!response.ok) {
                     window.showApiErrorToast(parsedPayload, response.status, `Request failed (${response.status})`);
                     return response;
@@ -412,6 +418,24 @@
             toggleSidebar();
         }
     }
+
+    // Session keep-alive heartbeat (every 30 minutes while tab is visible)
+    (function() {
+        const HEARTBEAT_MS = 30 * 60 * 1000;
+        let timer = null;
+
+        function ping() {
+            fetch('{{ route("heartbeat") }}', { credentials: 'same-origin' })
+                .then(r => { if (r.status === 401) window.location.href = '{{ route("login") }}'; })
+                .catch(() => {});
+        }
+
+        function start() { if (!timer) timer = setInterval(ping, HEARTBEAT_MS); }
+        function stop()  { clearInterval(timer); timer = null; }
+
+        document.addEventListener('visibilitychange', () => document.hidden ? stop() : start());
+        start();
+    })();
 
     // User dropdown toggle
     document.addEventListener('DOMContentLoaded', function() {
