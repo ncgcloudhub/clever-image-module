@@ -47,11 +47,15 @@ Route::middleware('auth')->get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
 
+// Session keep-alive heartbeat (called by JS every 30 minutes)
+Route::middleware('auth')->get('/heartbeat', function () {
+    return response()->json(['status' => 'ok', 'authenticated' => true]);
+})->name('heartbeat');
+
 // Logout route
 Route::post('/logout', function () {
     Auth::guard('web')->logout();
-    session()->forget('aisite_access_token');
-    session()->forget('aisite_user_role');
+    session()->forget(['aisite_access_token', 'aisite_token_issued_at', 'aisite_token_expires_in', 'aisite_user_role']);
     session()->invalidate();
     session()->regenerateToken();
 

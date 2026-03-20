@@ -675,6 +675,7 @@
         #genMiniNav {
             display: grid;
         }
+
         #genWrap {
             flex-direction: column;
             height: 100%;
@@ -700,6 +701,7 @@
         #genWrap.gen-generating #genSettings {
             bottom: calc(var(--gen-mini-nav-height) + env(safe-area-inset-bottom, 0px) + 0.75rem);
         }
+
 
         /* Compact stage UI */
         #genToolbar {

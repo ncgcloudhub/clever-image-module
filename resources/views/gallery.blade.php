@@ -268,6 +268,7 @@
             padding-bottom: calc(var(--mobile-mini-dock-height) + env(safe-area-inset-bottom, 0px) + 1rem);
         }
     }
+
     @media (min-width: 640px) {
         .gallery-search-shell {
             max-width: 18rem;

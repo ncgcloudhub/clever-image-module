@@ -116,11 +116,15 @@ class OAuthClientController extends Controller
 
         Auth::login($user, true);
 
-        // Store auth data from AISITE for later API calls and UI checks.
-        session(['aisite_access_token' => $accessToken]);
-        session(['aisite_user_role' => $providerRole]);
+        $expiresIn = $tokenData['expires_in'] ?? 86400;
+        session([
+            'aisite_access_token'     => $accessToken,
+            'aisite_token_issued_at'  => now()->timestamp,
+            'aisite_token_expires_in' => $expiresIn,
+            'aisite_user_role'        => $providerRole,
+        ]);
 
-        log::info('User logged in 121', ['user' => $user]);
+        Log::info('User logged in', ['user' => $user]);
 
         return redirect()->route('dashboard');
     }
