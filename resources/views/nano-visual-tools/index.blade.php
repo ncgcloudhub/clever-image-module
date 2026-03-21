@@ -1612,6 +1612,7 @@
                 },
                 body: formData,
             });
+            clearTimeout(runTimer);
 
             const data = await response.json();
 
@@ -1740,6 +1741,7 @@
                 },
                 body: formData,
             });
+            clearTimeout(runTimer2);
 
             const data = await response.json();
 
@@ -2098,6 +2100,7 @@
                 },
                 body: JSON.stringify(payload),
             });
+            clearTimeout(regenTimer);
 
             const data = await response.json();
 

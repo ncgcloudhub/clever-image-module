@@ -1366,6 +1366,7 @@ async function generateImage() {
             headers: { 'X-CSRF-TOKEN': CSRF, ...headers },
             body,
         });
+        clearTimeout(genTimer);
         const data = await res.json();
 
         if (data.success) {
