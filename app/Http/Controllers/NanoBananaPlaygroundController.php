@@ -100,6 +100,8 @@ class NanoBananaPlaygroundController extends Controller
      */
     public function chat(Request $request)
     {
+        set_time_limit(300);
+
         $request->validate([
             'prompt'          => 'required|string|max:5000',
             'canvas_image'    => 'nullable|image|mimes:png,jpg,jpeg,webp|max:10240',

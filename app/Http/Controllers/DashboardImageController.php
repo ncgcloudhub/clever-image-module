@@ -41,10 +41,12 @@ class DashboardImageController extends Controller
             ], 401);
         }
 
+        set_time_limit(300);
+
         $service = config('services.aisite');
 
         $http = new Client([
-            'timeout' => 60,
+            'timeout' => 180,
         ]);
 
         try {

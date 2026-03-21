@@ -1357,11 +1357,16 @@ async function generateImage() {
             });
         }
 
+        const ac = new AbortController();
+        const genTimer = setTimeout(() => ac.abort(), 180000);
+
         const res  = await fetch('/image-generator/generate', {
             method: 'POST',
+            signal: ac.signal,
             headers: { 'X-CSRF-TOKEN': CSRF, ...headers },
             body,
         });
+        clearTimeout(genTimer);
         const data = await res.json();
 
         if (data.success) {
@@ -1384,7 +1389,7 @@ async function generateImage() {
             showError(data.message ?? data.error ?? 'Generation failed.');
         }
     } catch (e) {
-        showError('Request failed: ' + e.message);
+        showError(e.name === 'AbortError' ? 'Request timed out — the image took too long to generate. Please try again.' : 'Request failed: ' + e.message);
     } finally {
         S.loading         = false;
         S.loadingProgress = 100;

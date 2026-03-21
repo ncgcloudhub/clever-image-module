@@ -1601,13 +1601,18 @@
                 formData.set('features', JSON.stringify(features));
             }
 
+            const ac = new AbortController();
+            const runTimer = setTimeout(() => ac.abort(), 180000);
+
             const response = await fetch('{{ route("api.nano.visual.tools.run") }}', {
                 method: 'POST',
+                signal: ac.signal,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
                 body: formData,
             });
+            clearTimeout(runTimer);
 
             const data = await response.json();
 
@@ -1724,13 +1729,18 @@
                 formData.set('features', JSON.stringify(features));
             }
 
+            const ac2 = new AbortController();
+            const runTimer2 = setTimeout(() => ac2.abort(), 180000);
+
             const response = await fetch('{{ route("api.nano.visual.tools.run") }}', {
                 method: 'POST',
+                signal: ac2.signal,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
                 body: formData,
             });
+            clearTimeout(runTimer2);
 
             const data = await response.json();
 
@@ -2074,8 +2084,12 @@
         };
 
         try {
+            const regenAc = new AbortController();
+            const regenTimer = setTimeout(() => regenAc.abort(), 180000);
+
             const response = await fetch('{{ route("api.nano.visual.tools.regenerate") }}', {
                 method: 'POST',
+                signal: regenAc.signal,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                     'Content-Type': 'application/json',
@@ -2083,6 +2097,7 @@
                 },
                 body: JSON.stringify(payload),
             });
+            clearTimeout(regenTimer);
 
             const data = await response.json();
 
