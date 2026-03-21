@@ -91,7 +91,7 @@ class ProfileController extends Controller
             $result = json_decode((string) $response->getBody(), true);
 
             return response()->json($result);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $body = json_decode((string) $e->getResponse()->getBody(), true);
             return response()->json($body ?? ['success' => false, 'message' => 'Password change failed'], $e->getResponse()->getStatusCode());
         } catch (\Exception $e) {
@@ -154,7 +154,7 @@ class ProfileController extends Controller
             $result = json_decode((string) $response->getBody(), true);
 
             return response()->json($result);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $body = json_decode((string) $e->getResponse()->getBody(), true);
             return response()->json($body ?? ['success' => false, 'message' => 'Failed to create referral code'], $e->getResponse()->getStatusCode());
         } catch (\Exception $e) {
@@ -186,7 +186,7 @@ class ProfileController extends Controller
             $result = json_decode((string) $response->getBody(), true);
 
             return response()->json($result);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $body = json_decode((string) $e->getResponse()->getBody(), true);
             return response()->json($body ?? ['success' => false, 'message' => 'Failed to delete referral code'], $e->getResponse()->getStatusCode());
         } catch (\Exception $e) {
