@@ -41,9 +41,9 @@ class StatsController extends Controller
             $data = json_decode((string) $response->getBody(), true);
 
             return response()->json($data);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $body = json_decode((string) $e->getResponse()->getBody(), true);
-            Log::warning('Stats API client error', ['status' => $e->getResponse()->getStatusCode(), 'body' => $body]);
+            Log::warning('Stats API upstream error', ['status' => $e->getResponse()->getStatusCode(), 'body' => $body]);
             return response()->json($body ?? ['success' => false, 'message' => 'Failed to fetch stats'], $e->getResponse()->getStatusCode());
         } catch (\Exception $e) {
             Log::error('Stats API proxy error', ['error' => $e->getMessage()]);
