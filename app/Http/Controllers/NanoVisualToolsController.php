@@ -117,7 +117,7 @@ class NanoVisualToolsController extends Controller
         $service = config('services.aisite');
 
         $http = new Client([
-            'timeout' => 120, // Image generation can take time
+            'timeout' => 180,
         ]);
 
         try {
