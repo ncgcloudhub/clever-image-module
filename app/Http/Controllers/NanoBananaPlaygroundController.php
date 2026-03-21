@@ -11,7 +11,7 @@ class NanoBananaPlaygroundController extends Controller
 {
     private function providerError(\Throwable $e, string $fallback)
     {
-        if ($e instanceof \GuzzleHttp\Exception\ClientException && $e->hasResponse()) {
+        if ($e instanceof \GuzzleHttp\Exception\BadResponseException && $e->hasResponse()) {
             $status = $e->getResponse()->getStatusCode();
             $body   = (string) $e->getResponse()->getBody();
             $json   = json_decode($body, true);
