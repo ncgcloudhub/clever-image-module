@@ -79,6 +79,8 @@ class ImageGeneratorController extends Controller
      */
     public function generate(Request $request)
     {
+        set_time_limit(300);
+
         $token = $this->accessToken();
         if (!$token) return $this->unauthorised();
 

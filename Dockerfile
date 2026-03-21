@@ -28,8 +28,14 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
     && docker-php-ext-enable redis \
     && apk del .build-deps
 
+# Allow long-running image generation requests (default 30s is too low)
+RUN echo 'max_execution_time = 300' > /usr/local/etc/php/conf.d/timeouts.ini \
+    && echo 'max_input_time = 300' >> /usr/local/etc/php/conf.d/timeouts.ini
+
 # PHP-FPM listens on 127.0.0.1:9000 (nginx in same container proxies to it)
-RUN sed -i 's/^listen = .*/listen = 127.0.0.1:9000/' /usr/local/etc/php-fpm.d/www.conf
+# Disable FPM-level request termination so max_execution_time governs instead
+RUN sed -i 's/^listen = .*/listen = 127.0.0.1:9000/' /usr/local/etc/php-fpm.d/www.conf \
+    && echo 'request_terminate_timeout = 0' >> /usr/local/etc/php-fpm.d/www.conf
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
