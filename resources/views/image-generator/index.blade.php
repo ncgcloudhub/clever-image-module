@@ -1318,6 +1318,9 @@ async function generateImage() {
     setGenerating(true);
     simulateProgress();
 
+    const genAc = new AbortController();
+    let genTimer = setTimeout(() => genAc.abort(), 180000);
+
     try {
         let body, headers = {};
         const hasRefImages = S.referenceFiles.length > 0;
@@ -1357,16 +1360,12 @@ async function generateImage() {
             });
         }
 
-        const ac = new AbortController();
-        const genTimer = setTimeout(() => ac.abort(), 180000);
-
         const res  = await fetch('/image-generator/generate', {
             method: 'POST',
-            signal: ac.signal,
+            signal: genAc.signal,
             headers: { 'X-CSRF-TOKEN': CSRF, ...headers },
             body,
         });
-        clearTimeout(genTimer);
         const data = await res.json();
 
         if (data.success) {

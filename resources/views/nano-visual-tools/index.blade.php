@@ -1587,6 +1587,9 @@
             </div>
         `;
 
+        const runAc = new AbortController();
+        let runTimer = setTimeout(() => runAc.abort(), 180000);
+
         try {
             const formData = new FormData(e.target);
 
@@ -1601,18 +1604,14 @@
                 formData.set('features', JSON.stringify(features));
             }
 
-            const ac = new AbortController();
-            const runTimer = setTimeout(() => ac.abort(), 180000);
-
             const response = await fetch('{{ route("api.nano.visual.tools.run") }}', {
                 method: 'POST',
-                signal: ac.signal,
+                signal: runAc.signal,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
                 body: formData,
             });
-            clearTimeout(runTimer);
 
             const data = await response.json();
 
@@ -1634,7 +1633,12 @@
             }
         } catch (error) {
             statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-            statusEl.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">error</span><span>${error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Image generation failed')}</span></div>`;
+            const errMsg = error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Image generation failed');
+            statusEl.innerHTML = '';
+            const w = document.createElement('div'); w.className = 'flex items-center gap-2';
+            const ic = document.createElement('span'); ic.className = 'material-symbols-outlined text-sm'; ic.textContent = 'error';
+            const tx = document.createElement('span'); tx.textContent = errMsg;
+            w.appendChild(ic); w.appendChild(tx); statusEl.appendChild(w);
 
             resetPreview();
         } finally {
@@ -1716,6 +1720,9 @@
             </div>
         `;
 
+        const runAc2 = new AbortController();
+        let runTimer2 = setTimeout(() => runAc2.abort(), 180000);
+
         try {
             const formData = new FormData(e.target);
 
@@ -1730,18 +1737,14 @@
                 formData.set('features', JSON.stringify(features));
             }
 
-            const ac2 = new AbortController();
-            const runTimer2 = setTimeout(() => ac2.abort(), 180000);
-
             const response = await fetch('{{ route("api.nano.visual.tools.run") }}', {
                 method: 'POST',
-                signal: ac2.signal,
+                signal: runAc2.signal,
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                 },
                 body: formData,
             });
-            clearTimeout(runTimer2);
 
             const data = await response.json();
 
@@ -1764,7 +1767,12 @@
             }
         } catch (error) {
             statusEl.className = 'p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400';
-            statusEl.innerHTML = `<div class="flex items-center gap-3"><span class="material-symbols-outlined">error</span><span>${error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Image generation failed')}</span></div>`;
+            const errMsg = error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Image generation failed');
+            statusEl.innerHTML = '';
+            const w = document.createElement('div'); w.className = 'flex items-center gap-3';
+            const ic = document.createElement('span'); ic.className = 'material-symbols-outlined'; ic.textContent = 'error';
+            const tx = document.createElement('span'); tx.textContent = errMsg;
+            w.appendChild(ic); w.appendChild(tx); statusEl.appendChild(w);
         } finally {
             clearTimeout(runTimer2);
             btn.disabled = false;
@@ -2086,10 +2094,10 @@
             detail_enhance: document.getElementById('regenDetailEnhance').checked,
         };
 
-        try {
-            const regenAc = new AbortController();
-            const regenTimer = setTimeout(() => regenAc.abort(), 180000);
+        const regenAc = new AbortController();
+        let regenTimer = setTimeout(() => regenAc.abort(), 180000);
 
+        try {
             const response = await fetch('{{ route("api.nano.visual.tools.regenerate") }}', {
                 method: 'POST',
                 signal: regenAc.signal,
@@ -2100,7 +2108,6 @@
                 },
                 body: JSON.stringify(payload),
             });
-            clearTimeout(regenTimer);
 
             const data = await response.json();
 
@@ -2126,7 +2133,12 @@
         } catch (error) {
             clearRegenSkeletons();
             statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
-            statusEl.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">error</span><span>${error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Regeneration failed')}</span></div>`;
+            const errMsg = error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Regeneration failed');
+            statusEl.innerHTML = '';
+            const w = document.createElement('div'); w.className = 'flex items-center gap-2';
+            const ic = document.createElement('span'); ic.className = 'material-symbols-outlined text-sm'; ic.textContent = 'error';
+            const tx = document.createElement('span'); tx.textContent = errMsg;
+            w.appendChild(ic); w.appendChild(tx); statusEl.appendChild(w);
         } finally {
             clearTimeout(regenTimer);
             btn.disabled = false;
