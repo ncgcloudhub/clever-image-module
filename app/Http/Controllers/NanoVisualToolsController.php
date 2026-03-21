@@ -95,6 +95,8 @@ class NanoVisualToolsController extends Controller
      */
     public function runTool(Request $request)
     {
+        set_time_limit(300);
+
         $data = $request->validate([
             'tool' => 'required|string|max:100',
             'tool_id' => 'required|integer',
@@ -257,6 +259,8 @@ class NanoVisualToolsController extends Controller
      */
     public function regenerate(Request $request)
     {
+        set_time_limit(300);
+
         $data = $request->validate([
             'image_id' => 'required|integer',
             'modification_prompt' => 'nullable|string|max:1000',

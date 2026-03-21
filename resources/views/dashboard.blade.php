@@ -380,9 +380,12 @@ async function quickGenerate() {
 
     try {
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        const ac = new AbortController();
+        const timer = setTimeout(() => ac.abort(), 180000);
 
         const response = await fetch('/dashboard/image', {
             method: 'POST',
+            signal: ac.signal,
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
@@ -390,6 +393,7 @@ async function quickGenerate() {
             },
             body: JSON.stringify({ prompt }),
         });
+        clearTimeout(timer);
 
         const data = await response.json();
 

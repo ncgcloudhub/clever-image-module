@@ -1149,8 +1149,12 @@ async function sendMiniChat() {
     if (S.conversationId)  fd.append('conversation_id', S.conversationId);
     if (S.refFile)         fd.append('canvas_image', S.refFile);
 
+    const chatAc = new AbortController();
+    const chatTimer = setTimeout(() => chatAc.abort(), 180000);
+
     try {
-        const r    = await fetch('{{ route("playground.api.chat") }}', { method: 'POST', body: fd });
+        const r    = await fetch('{{ route("playground.api.chat") }}', { method: 'POST', signal: chatAc.signal, body: fd });
+        clearTimeout(chatTimer);
         const data = await r.json();
 
         hideMiniTyping();
@@ -1186,8 +1190,9 @@ async function sendMiniChat() {
             appendMiniError(data.error || data.message || 'Generation failed.');
         }
     } catch (e) {
+        clearTimeout(chatTimer);
         hideMiniTyping();
-        appendMiniError('Network error — could not reach the server.');
+        appendMiniError(e.name === 'AbortError' ? 'Request timed out — please try again.' : 'Network error — could not reach the server.');
     }
 
     S.refFile = null;
