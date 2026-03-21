@@ -1151,6 +1151,15 @@
         // Setup form fields
         setupInterfaceForm(selectedTool);
 
+        // Update generate button with credits badge
+        const genBtn = document.getElementById('interfaceGenerateBtn');
+        const credits = selectedTool.credits_per_generation || 2;
+        genBtn.innerHTML = `
+            <span class="material-symbols-outlined text-lg group-hover:animate-pulse">bolt</span>
+            GENERATE
+            <span class="ml-1 text-[10px] font-medium opacity-75 bg-white/10 px-1.5 py-0.5 rounded">${credits} credit${credits !== 1 ? 's' : ''}</span>
+        `;
+
         // Reset preview
         resetPreview();
     }
@@ -1269,6 +1278,21 @@
         formContent.innerHTML = '';
 
         let sectionNumber = 1;
+
+        // Tool description / tips
+        if (tool.description) {
+            const descDiv = document.createElement('div');
+            descDiv.className = 'p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 mb-1';
+            const descInner = document.createElement('div');
+            descInner.className = 'flex gap-2 items-start';
+            descInner.innerHTML = '<span class="material-symbols-outlined text-blue-400 text-sm mt-0.5 shrink-0">info</span>';
+            const descText = document.createElement('p');
+            descText.className = 'text-[11px] text-blue-300/80 leading-relaxed';
+            descText.textContent = tool.description;
+            descInner.appendChild(descText);
+            descDiv.appendChild(descInner);
+            formContent.appendChild(descDiv);
+        }
 
         // Prompt field
         if (tool.prompt_required) {
@@ -1423,6 +1447,78 @@
 
             formContent.appendChild(featuresDiv);
         }
+
+        // Collapsible Advanced Options
+        const advDiv = document.createElement('div');
+        advDiv.className = 'border-t border-white/5 pt-2 mt-2';
+        advDiv.innerHTML = `
+            <button type="button" id="advancedOptionsToggle" onclick="toggleAdvancedOptions()" class="w-full flex items-center justify-between py-2 text-slate-400 hover:text-white transition-colors group">
+                <span class="text-[10px] font-bold uppercase tracking-widest">Advanced Options</span>
+                <span class="material-symbols-outlined text-sm transition-transform" id="advancedOptionsIcon">expand_more</span>
+            </button>
+            <div id="advancedOptionsPanel" class="hidden space-y-4 pb-2">
+                ${!tool.prompt_required ? `
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-[10px] font-medium text-slate-300">Custom Instructions</label>
+                        <button type="button" onclick="openPromptModal('adv_prompt', 'Custom Instructions')" class="flex items-center gap-1 text-slate-500 hover:text-primary transition-colors" title="Expand editor">
+                            <span class="material-symbols-outlined text-xs">open_in_full</span>
+                        </button>
+                    </div>
+                    <textarea
+                        id="adv_prompt"
+                        name="prompt"
+                        rows="2"
+                        class="w-full bg-white/5 border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-y"
+                        placeholder="Add custom instructions to guide the generation..."
+                    ></textarea>
+                </div>
+                ` : ''}
+                <div>
+                    <label class="text-[10px] font-medium text-slate-300 block mb-1.5">Negative Prompt</label>
+                    <textarea
+                        name="negative_prompt"
+                        rows="2"
+                        class="w-full bg-white/5 border-white/10 rounded-lg p-2.5 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all resize-y"
+                        placeholder="Describe what to avoid (e.g. blurry, watermark, low quality)..."
+                    ></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] font-medium text-slate-300 block mb-1.5">Output Format</label>
+                        <select
+                            name="output_format"
+                            class="w-full bg-slate-800/90 border border-white/10 rounded-lg p-2 text-sm text-white focus:ring-primary focus:border-primary transition-all"
+                        >
+                            <option value="">Auto (PNG)</option>
+                            <option value="png">PNG</option>
+                            <option value="jpeg">JPEG</option>
+                            <option value="webp">WebP</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-medium text-slate-300 block mb-1.5">Seed</label>
+                        <input
+                            type="number"
+                            name="seed"
+                            min="0"
+                            max="2147483647"
+                            class="w-full bg-white/5 border-white/10 rounded-lg p-2 text-sm text-white placeholder:text-slate-600 focus:ring-primary focus:border-primary transition-all"
+                            placeholder="Random"
+                        >
+                    </div>
+                </div>
+                <p class="text-[9px] text-slate-600 leading-snug">Seed produces reproducible results — use the same seed and prompt to get the same output.</p>
+            </div>
+        `;
+        formContent.appendChild(advDiv);
+    }
+
+    function toggleAdvancedOptions() {
+        const panel = document.getElementById('advancedOptionsPanel');
+        const icon = document.getElementById('advancedOptionsIcon');
+        panel.classList.toggle('hidden');
+        icon.textContent = panel.classList.contains('hidden') ? 'expand_more' : 'expand_less';
     }
 
     function previewUploadedImage(input, previewId) {

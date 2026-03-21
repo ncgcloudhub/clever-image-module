@@ -98,11 +98,14 @@ class NanoVisualToolsController extends Controller
         set_time_limit(300);
 
         $data = $request->validate([
-            'tool' => 'required|string|max:100',
-            'tool_id' => 'required|integer',
-            'prefix_text' => 'nullable|string|max:500',
-            'features' => 'nullable|json',
-            'prompt' => 'nullable|string|max:5000',
+            'tool'            => 'required|string|max:100',
+            'tool_id'         => 'required|integer',
+            'prefix_text'     => 'nullable|string|max:500',
+            'features'        => 'nullable|json',
+            'prompt'          => 'nullable|string|max:5000',
+            'negative_prompt' => 'nullable|string|max:2000',
+            'output_format'   => 'nullable|string|in:png,jpeg,webp',
+            'seed'            => 'nullable|integer',
         ]);
        
         $accessToken = session('aisite_access_token');
@@ -151,6 +154,27 @@ class NanoVisualToolsController extends Controller
                 $multipart[] = [
                     'name' => 'prompt',
                     'contents' => $data['prompt'],
+                ];
+            }
+
+            if (!empty($data['negative_prompt'])) {
+                $multipart[] = [
+                    'name' => 'negative_prompt',
+                    'contents' => $data['negative_prompt'],
+                ];
+            }
+
+            if (!empty($data['output_format'])) {
+                $multipart[] = [
+                    'name' => 'output_format',
+                    'contents' => $data['output_format'],
+                ];
+            }
+
+            if (isset($data['seed']) && $data['seed'] !== null) {
+                $multipart[] = [
+                    'name' => 'seed',
+                    'contents' => (string) $data['seed'],
                 ];
             }
 
