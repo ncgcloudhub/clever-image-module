@@ -1391,6 +1391,7 @@ async function generateImage() {
     } catch (e) {
         showError(e.name === 'AbortError' ? 'Request timed out — the image took too long to generate. Please try again.' : 'Request failed: ' + e.message);
     } finally {
+        clearTimeout(genTimer);
         S.loading         = false;
         S.loadingProgress = 100;
         setGenerating(false);

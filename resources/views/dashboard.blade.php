@@ -378,11 +378,11 @@ async function quickGenerate() {
     // Smooth scroll to result
     setTimeout(() => resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
 
-    try {
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const ac = new AbortController();
-        const timer = setTimeout(() => ac.abort(), 180000);
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 180000);
 
+    try {
         const response = await fetch('/dashboard/image', {
             method: 'POST',
             signal: ac.signal,
@@ -393,7 +393,6 @@ async function quickGenerate() {
             },
             body: JSON.stringify({ prompt }),
         });
-        clearTimeout(timer);
 
         const data = await response.json();
 
@@ -420,12 +419,14 @@ async function quickGenerate() {
         resultContent.classList.add('hidden');
         errorState.classList.remove('hidden');
         resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        const msg = err.name === 'AbortError' ? 'Request timed out — please try again.' : (err.message || 'Image generation failed.');
         if (window.showApiErrorToast) {
-            window.showApiErrorToast({ message: err && err.message ? err.message : 'Image generation failed.' });
+            window.showApiErrorToast({ message: msg });
         } else if (window.appToast) {
-            window.appToast(err && err.message ? err.message : 'Image generation failed.', 'error');
+            window.appToast(msg, 'error');
         }
     } finally {
+        clearTimeout(timer);
         btn.disabled = false;
         btnText.textContent = 'Generate';
         btnIcon.textContent = 'auto_fix';
