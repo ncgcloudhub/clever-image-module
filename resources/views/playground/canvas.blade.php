@@ -1154,7 +1154,6 @@ async function sendMiniChat() {
 
     try {
         const r    = await fetch('{{ route("playground.api.chat") }}', { method: 'POST', signal: chatAc.signal, body: fd });
-        clearTimeout(chatTimer);
         const data = await r.json();
 
         hideMiniTyping();
@@ -1190,9 +1189,10 @@ async function sendMiniChat() {
             appendMiniError(data.error || data.message || 'Generation failed.');
         }
     } catch (e) {
-        clearTimeout(chatTimer);
         hideMiniTyping();
         appendMiniError(e.name === 'AbortError' ? 'Request timed out — please try again.' : 'Network error — could not reach the server.');
+    } finally {
+        clearTimeout(chatTimer);
     }
 
     S.refFile = null;

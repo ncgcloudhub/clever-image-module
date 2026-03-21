@@ -72,7 +72,7 @@ class NanoBananaPlaygroundController extends Controller
 
     private function http(): Client
     {
-        return new Client(['timeout' => 130]);
+        return new Client(['timeout' => 180]);
     }
 
     private function accessToken(): ?string

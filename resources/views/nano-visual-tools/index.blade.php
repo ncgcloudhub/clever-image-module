@@ -1633,11 +1633,12 @@
                 displayInPreview(data);
             }
         } catch (error) {
-            statusEl.classList.add('hidden');
+            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
+            statusEl.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">error</span><span>${error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Image generation failed')}</span></div>`;
 
-            // Reset preview on error
             resetPreview();
         } finally {
+            clearTimeout(runTimer);
             setMobileGeneratingDrawerState(false);
             btn.disabled = false;
         }
@@ -1762,8 +1763,10 @@
                 closeToolModal();
             }
         } catch (error) {
-            statusEl.classList.add('hidden');
+            statusEl.className = 'p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400';
+            statusEl.innerHTML = `<div class="flex items-center gap-3"><span class="material-symbols-outlined">error</span><span>${error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Image generation failed')}</span></div>`;
         } finally {
+            clearTimeout(runTimer2);
             btn.disabled = false;
         }
     });
@@ -2122,8 +2125,10 @@
 
         } catch (error) {
             clearRegenSkeletons();
-            statusEl.classList.add('hidden');
+            statusEl.className = 'p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs';
+            statusEl.innerHTML = `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-sm">error</span><span>${error.name === 'AbortError' ? 'Request timed out — please try again.' : (error.message || 'Regeneration failed')}</span></div>`;
         } finally {
+            clearTimeout(regenTimer);
             btn.disabled = false;
             btn.innerHTML = REGEN_BTN_DEFAULT_HTML;
             document.getElementById('regenOffcanvasPanel').classList.remove('offcanvas-generating');
